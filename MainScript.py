@@ -23,7 +23,7 @@ def pUrl(url):#查找省份链接
         pList.append(i.getText())
     info = pList, pUrl  # 城市名 链接
     print(info)
-    return info  # 返回城市名和链接
+    return info  # 返回城市名和链接的列表
 
 def cityUrlLoad(url):#通过省份链接查找城市链接
     req = request.Request(url, headers=headers)
@@ -39,7 +39,7 @@ def cityUrlLoad(url):#通过省份链接查找城市链接
         cityList.append(i.getText())
     info=cityList,cityUrl#城市名 链接
     print(info)
-    return info#返回城市名和链接
+    return info#返回城市名和链接的列表
 
 def hUrl(url):#通过城市链接查找医院链接
     req = request.Request(url, headers=headers)
@@ -55,7 +55,7 @@ def hUrl(url):#通过城市链接查找医院链接
         hList.append(i.getText())
     info = hList, hUrl  # 医院名 链接
     print(info)
-    return info  # 返回医院名和链接
+    return info  # 返回医院名和链接的列表
 
 def doctorUrlList(url):  # 获取推荐医生列表页面
     # 医院页面下跳转至医生推荐
@@ -77,7 +77,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
     print("更多", find_more)
     print("返回：",more_url)'''
 
-    #返回 更多 的链接
+    #返回 更多 的链接列表
     return more_url
 
 def doctorList(url):#获取医生链接列表
@@ -91,7 +91,7 @@ def doctorList(url):#获取医生链接列表
     for i in find_a:
         doctorList.append(str(i.get("href"))[2:])
     print(doctorList)
-    return doctorList
+    return doctorList#返回医生链接列表
 
 def doctorinfo(url):
     url="http://"+url
