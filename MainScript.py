@@ -24,7 +24,7 @@ def pUrl(url):#查找省份链接
         pList.append(i.getText())
     info = pList, pUrl  # 省份名 链接
     #print(info)
-    return info  # 返回省份名和链接
+    return info  # 返回省份名和链接列表
 
 def cityUrlLoad(url):#通过省份链接查找城市链接
     req = request.Request(url, headers=headers)
@@ -40,7 +40,7 @@ def cityUrlLoad(url):#通过省份链接查找城市链接
         cityList.append(i.getText())
     info=cityList,cityUrl#城市名 链接
     #print(info)
-    return info#返回城市名和链接
+    return info#返回城市名和链接列表
 
 def hUrl(url):#通过城市链接查找医院链接
     req = request.Request(url, headers=headers)
@@ -56,7 +56,7 @@ def hUrl(url):#通过城市链接查找医院链接
         hList.append(i.getText())
     info = hList, hUrl  # 医院名 链接
     #print(info)
-    return info  # 返回医院名和链接
+    return info  # 返回医院名和链接列表
 
 def doctorUrlList(url):  # 获取推荐医生列表页面
     # 医院页面下跳转至医生推荐
