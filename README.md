@@ -1,4 +1,4 @@
-#抓取网站评论数据Demo
+# 抓取网站评论数据Demo
 
 使用环境：
 
@@ -8,5 +8,5 @@
 
 3.lxml
 
-4.selemium
+4.selenium
 
