@@ -219,14 +219,14 @@ def __init__():
                                 time.sleep(30)
                             try:
                                 for temp_url in doctorUrl:
-                                    doctorUrl = doctorList(temp_url)
-                                    init_ys += len(doctorUrl)
-                                    for temp_ys in range(len(doctorUrl)):
+                                    doctorUrll = doctorList(temp_url)
+                                    init_ys += len(doctorUrll)
+                                    for temp_ys in range(len(doctorUrll)):
                                         if temp_ys % 5 == 0:
                                             headers = uA(init_yy % 9)
                                             GPAct("更换UA，防止反爬检测")
                                             time.sleep(10)
-                                        url = doctorUrl[temp_ys]  # 医生链接
+                                        url = doctorUrll[temp_ys]  # 医生链接
                                         info = doctorinfo(url, driver=init_driver)  # 获取信息
                                         for i in info:
                                             finalInfo = {'省份名': shfName,
@@ -240,6 +240,7 @@ def __init__():
                                             writer.writerow(finalInfo)
                                             init_pl +=1
                             except:
+                                print(doctorUrl)
                                 GPError("997", traceback.format_exc())
 
                     except:
