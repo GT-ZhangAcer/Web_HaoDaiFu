@@ -8,8 +8,13 @@ import re
 from Tool import *
 from lxml import etree
 
+import csv
+
 # UA设置
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}
+
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
+
+key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
 
 
 def initDriver():
@@ -17,11 +22,11 @@ def initDriver():
         firefoxOpt = Options()  # 载入配置
         firefoxOpt.add_argument("--headless")
         GPAct("启动浏览器")
-        driver = webdriver.Firefox(workPath()+'exe/core/', firefox_options=firefoxOpt)
+        driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
         GPInfo("浏览器启动成功")
         return driver
     except:
-        GPError("001","浏览器启动失败")
+        GPError("001", "浏览器启动失败")
         return 1
 
 
@@ -72,7 +77,6 @@ def hUrl(url):  # 通过城市链接查找医院链接
         hUrl.append('https://www.haodf.com/' + str(i.get("href"))[2:])
         hList.append(i.getText())
     info = hList, hUrl  # 医院名 链接
-    # print(info)
     return info  # 返回医院名和链接列表
 
 
@@ -100,7 +104,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
     return more_url
 
 
-def doctorList(url):  # 获取医生链接列表
+def doctorList(url):  # 从更多中获取医生链接列表
     req = request.Request(url, headers=headers)
     html = urlopen(req)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
@@ -110,10 +114,10 @@ def doctorList(url):  # 获取医生链接列表
     doctorList = []
     for i in find_a:
         doctorList.append("https://" + str(i.get("href"))[2:])
-    return doctorList
+    return doctorList  # 返回医生详情页链接
 
 
-def doctorinfo(url, driver):
+def doctorinfo(url, driver):  # 查找评价
     driver.get(url)
     driver.implicitly_wait(3)  # 等待JS加载时间
     GPAct("正在等待JS反馈")
@@ -123,14 +127,19 @@ def doctorinfo(url, driver):
     html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
     findTittle = (str(html_BSObj.title.text).split("_"))[0]  # 获取标题
 
-    doctor_about=(html_BSObj.find(attrs={"id":"truncate"})).getText()#获取医生介绍
+    doctor_about = findTittle + "-" + str((html_BSObj.find(attrs={"id": "truncate"})).getText())  # 获取医生介绍
     find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
+
+    returninfo = []
     for i in find_info:
         html = etree.HTML(str(i))
-        html_data = html.xpath('//*[@id="comment_type_all"]/table[1]/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')
-        print(html_data)
-    print(doctor_about)
-
+        attitudeA = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')  # 患者主观疗效
+        attitudeB = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[2]/span/text()')  # 态度
+        thank = html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:]  # 评价
+        money = html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()')  # 治疗花费
+        returninfo.append([doctor_about, attitudeA, attitudeB, thank, money])
+    driver.close()  # 关闭浏览器
+    return returninfo  # 返回[医生信息 主观疗效 态度 评价内容 花费]为每一组的数据
 
 
 def __init__():
@@ -152,19 +161,86 @@ def __init__():
         doctorList(url)'''
 
         url = 'https://www.haodf.com/doctor/DE4rO-XCoLUmy1568JOrYZEIRi.htm'
-        doctorinfo(url,initDriver())
+        init_driver = initDriver()  # 初始化浏览器对象
+        doctorinfo(url, init_driver)
+        init_driver.quit()  # 退出浏览器
 
-    debug()
-    init_shf=0#省份计数器
-    init_chs=0#城市总计数器
-    init_yy=0#医院总计数器
-    init_ys=0#医生总计数器
-    init_pl=0#评论总计数器
+    # debug()
+
     def start():
-        url = "https://www.haodf.com/yiyuan/all/list.htm"
-        purlList = pUrl(url)#获取省份链接
-        init_shf=len(purlList[0])
-        #for shf in purlList[1]:
+        init_driver = initDriver()  # 初始化浏览器对象
+        global headers
 
+        with open('example.csv', 'w', newline='') as f:  # 数据准备写入
+            writer = csv.DictWriter(f, headers)
+            writer.writeheader()
+
+            url = "https://www.haodf.com/yiyuan/all/list.htm"
+            purlList = pUrl(url)  # 获取省份链接
+
+            init_shf = 0  # 省份总计数器
+            init_chs = 0  # 城市总计数器
+            init_yy = 0  # 医院总计数器
+            init_ys = 0  # 医生总计数器
+            init_pl = 0  # 评论总计数器
+
+            init_shf = len(purlList[0])
+            for temp_shf in range(init_shf):
+                shfName = purlList[0][temp_shf]  # 省份名
+                shfUrl = purlList[1][temp_shf]  # 省份链接
+                cityInfoList = cityUrlLoad(shfUrl)  # 获取城市链接
+                init_chs += len(cityInfoList[0])
+                # try:
+                for temp_chs in range(len(cityInfoList[0])):
+                    chsName = cityInfoList[0][temp_chs]  # 城市名
+                    chsUrl = cityInfoList[1][temp_chs]  # 城市链接
+                    hostipal = hUrl(chsUrl)
+                    init_yy += len(hostipal[0])
+
+                    if init_yy % 20 == 0:
+                        GPAct("防止反爬检测，暂停进行等待")
+                        GPInfo("当前已经抓取" + str(init_pl) + "条评论")
+                        GPInfo("正在抓取第" + str(temp_shf) + "个省份 共" + str(init_shf) + "个省份")
+                        time.sleep(200)
+                        # try:
+                        for temp_yy in range(len(hostipal[0])):
+                            hostipalName = hostipal[0][temp_yy]  # 医院名
+                            hostipalUrl = hostipal[1][temp_yy]  # 医院链接
+                            doctorUrl = doctorUrlList(hostipalUrl)
+                            doctorUrl = doctorList(doctorUrl)
+                            init_ys += len(doctorUrl)
+
+                            if init_yy % 15 == 0:
+                                headers = uA(init_yy % 9)
+                                GPAct("更换UA，防止反爬检测")
+                                time.sleep(100)
+                            for temp_ys in range(len(doctorUrl)):
+                                if temp_ys % 5 == 0:
+                                    headers = uA(init_yy % 9)
+                                    GPAct("更换UA，防止反爬检测")
+                                    time.sleep(5)
+                                url = doctorUrl[temp_ys]  # 医生链接
+                                info = doctorinfo(url, driver=init_driver)  # 获取信息
+                                init_pl += len(info)
+                                finalInfo = [{'省份名': shfName,
+                                              '城市名': chsName,
+                                              '医院名': hostipalName,
+                                              '医生信息': info[0],
+                                              '主观疗效': info[1],
+                                              '态度': info[2],
+                                              '评价内容': info[3],
+                                              '花费': info[4]}]
+                                writer.writerow(finalInfo)
+                    '''except:
+                        GPError("200","被发现了，暂停10分钟")
+                        time.sleep(600)
+            except:
+                GPError("200","被发现了，暂停10分钟")
+                time.sleep(600)'''
+
+        init_driver.quit()
+        print("共抓取了", init_shf, init_chs, init_yy)
+
+    start()
 
 __init__()
