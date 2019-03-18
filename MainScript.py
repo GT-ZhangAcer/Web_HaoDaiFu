@@ -10,6 +10,8 @@ from lxml import etree
 
 import csv
 
+import traceback#错误处理
+
 # UA设置
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
@@ -126,8 +128,8 @@ def doctorinfo(url, driver):  # 查找评价
     page = driver.page_source
     html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
     findTittle = (str(html_BSObj.title.text).split("_"))[0]  # 获取标题
-
-    doctor_about = findTittle + "-" + str((html_BSObj.find(attrs={"id": "truncate"})).getText())  # 获取医生介绍
+    doctor_about = (html_BSObj.find(attrs={"id": "truncate"})).getText()
+    doctor_about = findTittle + "-" + str(doctor_about)  # 获取医生介绍
     find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
 
     returninfo = []
@@ -168,11 +170,13 @@ def __init__():
     # debug()
 
     def start():
+        error1 = 1
+        error2 = 1
         init_driver = initDriver()  # 初始化浏览器对象
         global headers
-
-        with open('example.csv', 'w', newline='') as f:  # 数据准备写入
-            writer = csv.DictWriter(f, headers)
+        csvName = str(timeinfo()) + ".csv"
+        with open(csvName, 'w', newline='') as f:  # 数据准备写入
+            writer = csv.DictWriter(f, key)
             writer.writeheader()
 
             url = "https://www.haodf.com/yiyuan/all/list.htm"
@@ -190,57 +194,68 @@ def __init__():
                 shfUrl = purlList[1][temp_shf]  # 省份链接
                 cityInfoList = cityUrlLoad(shfUrl)  # 获取城市链接
                 init_chs += len(cityInfoList[0])
-                # try:
+            try:
                 for temp_chs in range(len(cityInfoList[0])):
                     chsName = cityInfoList[0][temp_chs]  # 城市名
                     chsUrl = cityInfoList[1][temp_chs]  # 城市链接
                     hostipal = hUrl(chsUrl)
                     init_yy += len(hostipal[0])
-
-                    if init_yy % 20 == 0:
+                    i=0
+                    if init_yy % 3 == 0:
                         GPAct("防止反爬检测，暂停进行等待")
                         GPInfo("当前已经抓取" + str(init_pl) + "条评论")
-                        GPInfo("正在抓取第" + str(temp_shf) + "个省份 共" + str(init_shf) + "个省份")
-                        time.sleep(200)
-                        # try:
+                        time.sleep(100)
+                    try:
                         for temp_yy in range(len(hostipal[0])):
                             hostipalName = hostipal[0][temp_yy]  # 医院名
                             hostipalUrl = hostipal[1][temp_yy]  # 医院链接
                             doctorUrl = doctorUrlList(hostipalUrl)
-                            doctorUrl = doctorList(doctorUrl)
-                            init_ys += len(doctorUrl)
-
-                            if init_yy % 15 == 0:
+                            i+=1
+                            if i % 3 == 0:
                                 headers = uA(init_yy % 9)
                                 GPAct("更换UA，防止反爬检测")
-                                time.sleep(100)
-                            for temp_ys in range(len(doctorUrl)):
-                                if temp_ys % 5 == 0:
-                                    headers = uA(init_yy % 9)
-                                    GPAct("更换UA，防止反爬检测")
-                                    time.sleep(5)
-                                url = doctorUrl[temp_ys]  # 医生链接
-                                info = doctorinfo(url, driver=init_driver)  # 获取信息
-                                init_pl += len(info)
-                                finalInfo = [{'省份名': shfName,
-                                              '城市名': chsName,
-                                              '医院名': hostipalName,
-                                              '医生信息': info[0],
-                                              '主观疗效': info[1],
-                                              '态度': info[2],
-                                              '评价内容': info[3],
-                                              '花费': info[4]}]
-                                writer.writerow(finalInfo)
-                    '''except:
-                        GPError("200","被发现了，暂停10分钟")
-                        time.sleep(600)
-            except:
-                GPError("200","被发现了，暂停10分钟")
-                time.sleep(600)'''
+                                time.sleep(30)
 
-        init_driver.quit()
-        print("共抓取了", init_shf, init_chs, init_yy)
+                            for temp_url in doctorUrl:
+                                doctorUrl = doctorList(temp_url)
+                                init_ys += len(doctorUrl)
+                                for temp_ys in range(len(doctorUrl)):
+                                    if temp_ys % 5 == 0:
+                                        headers = uA(init_yy % 9)
+                                        GPAct("更换UA，防止反爬检测")
+                                        time.sleep(10)
+                                    url = doctorUrl[temp_ys]  # 医生链接
+                                    info = doctorinfo(url, driver=init_driver)  # 获取信息
+                                    for i in info:
+                                        finalInfo = {'省份名': shfName,
+                                                      '城市名': chsName,
+                                                      '医院名': hostipalName,
+                                                      '医生信息': i[0],
+                                                      '主观疗效': i[1],
+                                                      '态度': i[2],
+                                                      '评价内容': i[3],
+                                                      '花费': i[4]}
+                                        writer.writerow(finalInfo)
+                                        init_pl +=1
+                    except:
+                        error1+=1
+                        if error1%3==0:
+                            GPError("200","被发现了，暂停10分钟")
+                            time.sleep(600)
+                        GPError("999", traceback.format_exc())
+                        print(doctorUrl)
+            except:
+                error2 += 1
+                if error2 % 3 == 0:
+                    GPError("200", "被发现了，暂停10分钟")
+                    time.sleep(600)
+                GPError("999", traceback.format_exc())
+                print(hostipal)
+
+            init_driver.quit()
+            GPInfo("共成功抓取 城市数：" + str(init_chs) + "医院数：" + str(init_yy) + "医生数：" + str(init_ys) + "评论数：" + str(init_pl))
 
     start()
+
 
 __init__()

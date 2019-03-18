@@ -1,5 +1,5 @@
 import sys
-
+import time
 
 def GPInfo(info):
     print("INFO:", info)
@@ -45,3 +45,7 @@ def uA(int):
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)',
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)']
     return list[int]
+
+def timeinfo():
+    timea = time.strftime("%Y-%m-%d-%H-%M", time.localtime())  # 获取当前时间
+    return timea
