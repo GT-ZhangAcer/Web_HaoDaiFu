@@ -205,7 +205,7 @@ def __init__():
                         i = 0
                         if init_yy % 3 == 0:
                             GPAct("防止反爬检测，暂停进行等待")
-                            GPInfo("当前状态：第" + str(temp_shf) + "个省份")
+                            GPInfo("当前状态：第" + str(temp_shf+1) + "个省份")
                             time.sleep(20)
                         try:
                             for temp_yy in range(len(hostipal[0])):
@@ -239,11 +239,11 @@ def __init__():
                                                              '花费': i[4]}
                                                 writer.writerow(finalInfo)
                                                 init_pl += 1
-                                            if init_pl % 30 == 0:
-                                                error1 -= 1
-                                                error2 -= 2
-                                                init_driver.quit()
-                                                init_driver = initDriver()  # 重新开浏览器
+                                                if init_pl % 30 == 0:
+                                                    error1 -= 1
+                                                    error2 -= 2
+                                                    init_driver.quit()
+                                                    init_driver = initDriver()  # 重新开浏览器
                                 except:
                                     GPError("997", traceback.format_exc())
                                     continue
