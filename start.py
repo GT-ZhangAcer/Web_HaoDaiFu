@@ -58,7 +58,7 @@ def savedoctorList(startnum):
     with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
-        for i in range(startnum, endnum):
+        for i in range(startnum, int(endnum)):
             url = doctorUrlList(data[i][3])
             for ii in url:
                 if erroract % 3 == 2:
