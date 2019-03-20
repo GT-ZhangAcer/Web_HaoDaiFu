@@ -41,83 +41,102 @@ def savehostipalList():
                         finalInfo = {'省份名': shfName,
                                      '城市名': chsName,
                                      '医院名': hostipalName,
-                                     'Url': hostipalUrl
+                                     '医院Url': hostipalUrl
                                      }
                         writer.writerow(finalInfo)
 
 
-def savedoctorList():
-    errornum=0
-    with open("./data/ALLHostipalUrl.csv", 'w', newline='', encoding='utf-8') as f:
-        data = csv.reader(f)
+def savedoctorList(startnum):
+    errornum = 0
+    erroract = 0
+
+
+    with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
+        data = list(csv.reader(f))
+        GPInfo("总计数量为："+str(len(data)))
+        endnum=input("输入结束位置_")
     with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
-        for i in range(1, len(data)):
+        writer.writeheader()
+        for i in range(startnum, endnum):
             url = doctorUrlList(data[i][3])
             for ii in url:
+                if erroract % 3 == 2:
+                    GPError("200", "被发现了，暂停3分钟")
+                    time.sleep(180)
                 try:
                     doctorUrl = doctorList(ii)
+                    erroract = 0
                 except:
                     with open("./data/ErrorALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as fff:
                         finalInfo = {'省份名': data[i][0],
                                      '城市名': data[i][1],
                                      '医院名': data[i][2],
-                                     'Url': ii
+                                     '医院Url': ii
                                      }
                         Ewriter = csv.DictWriter(fff, key0)
                         Ewriter.writerow(finalInfo)
-                        errornum+=1
+                        Ewriter.writeheader()
+                        errornum += 1
+                        erroract += 1
                     continue
-                if ii % 10 == 0:
-                    GPAct("防止反爬检测，暂停进行等待")
-                    time.sleep(10)
-                finalInfo = {'省份名': data[i][0],
-                             '城市名': data[i][1],
-                             '医院名': data[i][2],
-                             'Url': doctorUrl
-                             }
-                writer.writerow(finalInfo)
-                if ii % 100 == 0:
-                    GPInfo("当前爬取医院进度[共8058]：" + str(i)+"|错误数："+str(errornum))
-
-
-def saveinfo():
-    errornum=0
-    with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8') as f:
-        data = csv.reader(f)
-    timea = str(timeinfo())
-    with open("./data/" + timea + ".csv", 'w', newline='', encoding='utf-8')as ff:
-        writer = csv.DictWriter(ff, key2)
-        driver = initDriver()
-        for i in range(1, len(data)):
-            if i%20==0:
-                driver.quit()
-                driver=initDriver()
-                GPAct("更换浏览器")
-            try:
-                info = doctorinfo(data[i][3], driver=driver)
-            except:
-                with open("./data/Error" + timea + ".csv", 'w', newline='', encoding='utf-8')as fff:
+                time.sleep(10)
+                for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
-                                 'Url': data[i][3]
+                                 '医生url': iii
                                  }
-                    Ewriter = csv.DictWriter(fff, key0)
-                    Ewriter.writerow(finalInfo)
-                    errornum+=1
-                continue
+                    writer.writerow(finalInfo)
+            GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum))
 
-            finalInfo = {'省份名': data[i][0],
-                         '城市名': data[i][1],
-                         '医院名': data[i][2],
-                         '医生信息': info[0],
-                         '主观疗效': info[1],
-                         '态度': info[2],
-                         '评价内容': info[3],
-                         '花费': info[4]}
-            writer.writerow(finalInfo)
-            if i % 100 == 0:
-                GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i)+"|错误数："+str(errornum))
+
+def saveinfo():
+    errornum = 0
+    erroract = 0
+    with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
+        data = list(csv.reader(f))
+        timea = str(timeinfo())
+        with open("./data/" + timea + ".csv", 'w', newline='', encoding='utf-8')as ff:
+            writer = csv.DictWriter(ff, key2)
+            writer.writeheader()
+            driver = initDriver()
+            for i in range(1, len(data)):
+                if i % 20 == 0:
+                    driver.quit()
+                    driver = initDriver()
+                    GPAct("更换浏览器")
+                if erroract % 3 == 2:
+                    GPError("200", "被发现了，暂停3分钟")
+                    time.sleep(180)
+                try:
+                    info = doctorinfo(data[i][3], driver=driver)
+                    erroract = 0
+                except:
+                    with open("./data/Error" + timea + ".csv", 'w', newline='', encoding='utf-8')as fff:
+                        finalInfo = {'省份名': data[i][0],
+                                     '城市名': data[i][1],
+                                     '医院名': data[i][2],
+                                     '医生url': data[i][3]
+                                     }
+                        Ewriter = csv.DictWriter(fff, key0)
+                        Ewriter.writerow(finalInfo)
+                        errornum += 1
+                    continue
+
+                finalInfo = {'省份名': data[i][0],
+                             '城市名': data[i][1],
+                             '医院名': data[i][2],
+                             '医生信息': info[0],
+                             '主观疗效': info[1],
+                             '态度': info[2],
+                             '评价内容': info[3],
+                             '花费': info[4]}
+                writer.writerow(finalInfo)
+                if i % 100 == 0:
+                    GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum))
+
 
 # savehostipalList()
+# savedoctorList()
+
