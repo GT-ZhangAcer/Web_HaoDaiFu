@@ -130,6 +130,7 @@ def doctorinfo(url, driver):  # 查找评价
     findTittle = (str(html_BSObj.title.text).split("_"))[0]  # 获取标题
     doctor_about = (html_BSObj.find(attrs={"id": "truncate"})).getText()
     doctor_about = findTittle + "-" + str(doctor_about)  # 获取医生介绍
+
     find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
 
     returninfo = []
@@ -144,9 +145,10 @@ def doctorinfo(url, driver):  # 查找评价
     return returninfo  # 返回[医生信息 主观疗效 态度 评价内容 花费]为每一组的数据
 
 
+'''
 def __init__():
     def debug():
-        '''
+        
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
 
@@ -156,20 +158,20 @@ def __init__():
         cityUrlLoad(url)
         url='https://www.haodf.com/yiyuan/beijing/chaoyang/list.htm'
         hUrl(url)
-       '''
+       
         url = 'https://www.haodf.com/hospital/DE4raCNSz6OmG3OUNZWCWNv0.htm'
         print(doctorUrlList(url))
 
-        '''
+        
         url='http://www.haodf.com/tuijian/DE4raCNSz6OmG3OUNZWCWNv0/daizhuangpaozhen.htm'
         print(doctorList(url)) 
 
         url = 'https://www.haodf.com/doctor/DE4rO-XCoLUmy1568JOrYZEIRi.htm'
         init_driver = initDriver()  # 初始化浏览器对象
         doctorinfo(url, init_driver)
-        init_driver.quit()  # 退出浏览器'''
+        init_driver.quit()  # 退出浏览器
 
-    # debug()
+    debug()
 
     def start():
         error1 = 1
@@ -268,6 +270,6 @@ def __init__():
         init_driver.quit()
 
     start()
+'''
 
-
-__init__()
+# __init__()
