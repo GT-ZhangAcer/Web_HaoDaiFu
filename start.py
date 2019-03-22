@@ -2,7 +2,9 @@ from MainScript import *
 
 key0 = ['省份名', '城市名', '医院名', '医院Url']  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生url']  # 数据表头 0-3
-key2 = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头 0-3-7
+key2 = ['省份名', '城市名', '医院名', '医生姓名',
+        '科室', '职称', '擅长', '经历', '值班',
+                                '主观疗效', '态度', '评价内容', '花费']  # 数据表头 0-3-13
 
 
 def savehostipalList():
@@ -50,11 +52,10 @@ def savedoctorList(startnum):
     errornum = 0
     erroract = 0
 
-
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为："+str(len(data)))
-        endnum=input("输入结束位置_")
+        GPInfo("总计数量为：" + str(len(data)))
+        endnum = input("输入结束位置_")
     with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
@@ -123,20 +124,30 @@ def saveinfo():
                         Ewriter.writerow(finalInfo)
                         errornum += 1
                     continue
+                try:
+                    finalInfo = {'省份名': data[i][0],
+                                 '城市名': data[i][1],
+                                 '医院名': data[i][2],
+                                 '医生姓名': info[i][0],
+                                 '科室': info[i][1],
+                                 '职称': info[i][2],
+                                 '擅长': info[i][3],
+                                 '经历': info[i][4],
+                                 '值班': info[i][5],
+                                 '主观疗效': info[i][6],
+                                 '态度': info[i][7],
+                                 '评价内容': info[i][8],
+                                 '花费': info[i][9]}
 
-                finalInfo = {'省份名': data[i][0],
-                             '城市名': data[i][1],
-                             '医院名': data[i][2],
-                             '医生信息': info[0],
-                             '主观疗效': info[1],
-                             '态度': info[2],
-                             '评价内容': info[3],
-                             '花费': info[4]}
-                writer.writerow(finalInfo)
+                    writer.writerow(finalInfo)
+                except:
+                    errornum += 1
+                    GPError(202, "数据不完整")
+                    continue
                 if i % 100 == 0:
                     GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum))
 
 
 # savehostipalList()
 # savedoctorList()
-
+saveinfo()
