@@ -68,7 +68,7 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
 
 def hUrl(url):  # 通过城市链接查找医院链接
     req = request.Request(url, headers=headers)
-    html = urlopen(req)
+    html = urlopen(req,timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_content = html_BSObj.find(attrs={"class": "m_ctt_green"})  # 定位目录
     find_url = BeautifulSoup(str(find_content), "lxml")
@@ -87,7 +87,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
     url = url.split("/")[-1:]
     url = 'https://www.haodf.com/tuijian/yiyuan/' + url[0]
     req = request.Request(url, headers=headers)
-    html = urlopen(req)
+    html = urlopen(req,timeout=5)#防假死
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_content = html_BSObj.find(attrs={"class": "box_a-introList box_a-introList01"})  # 定位目录
     # 定位“更多”
@@ -108,7 +108,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
 
 def doctorList(url):  # 从更多中获取医生链接列表
     req = request.Request(url, headers=headers)
-    html = urlopen(req)
+    html = urlopen(req,timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
     find_a = BeautifulSoup(str(find_List), "lxml")

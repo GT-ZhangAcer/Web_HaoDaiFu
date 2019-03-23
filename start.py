@@ -51,7 +51,7 @@ def savehostipalList():
 def savedoctorList(startnum):
     errornum = 0
     erroract = 0
-
+    sum=0
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
         GPInfo("总计数量为：" + str(len(data)))
@@ -88,8 +88,9 @@ def savedoctorList(startnum):
                                  '医院名': data[i][2],
                                  '医生url': iii
                                  }
+                    sum+=1
                     writer.writerow(finalInfo)
-            GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum))
+                GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum)+"|写入量"+str(sum))
 
 
 def saveinfo():
@@ -149,5 +150,5 @@ def saveinfo():
 
 
 # savehostipalList()
-# savedoctorList()
-saveinfo()
+savedoctorList(1)
+#saveinfo()

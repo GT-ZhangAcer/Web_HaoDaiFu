@@ -1,7 +1,7 @@
 import sys
 import time
 from bs4 import BeautifulSoup
-import requests
+#import requests
 from urllib import request
 
 
@@ -31,7 +31,7 @@ def workPath():
 def get_ip_list():
     url = 'http://www.xicidaili.com/nn/'
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}
-    web_data = requests.get(url, headers=headers)
+    #web_data = requests.get(url, headers=headers)
     soup = BeautifulSoup(web_data.text, 'lxml')
     ips = soup.find_all('tr')
     ip_list = []
@@ -51,7 +51,7 @@ def get_ip_list():
     return ip_list
 
 
-get_ip_list()
+
 
 
 def uA(int):
