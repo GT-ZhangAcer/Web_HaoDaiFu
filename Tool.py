@@ -55,7 +55,7 @@ def uA(int):
     return list[int]
 
 def strClean(str1):
-    str1=str(str1).replace(" ",'').replace("\n","").replace("\t",'').replace("\\n","").replace("\\t","")
+    str1=str(str1).replace(" ",'').replace("\n","").replace("\t",'').replace("\\n","").replace("\\t","").replace("&nbsp","")
     return str1
 
 def timeinfo():

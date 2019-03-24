@@ -4,8 +4,10 @@ import threading
 key0 = ['省份名', '城市名', '医院名', '医院Url']  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生Url']  # 数据表头 0-3
 key2 = ['省份名', '城市名', '医院名', '医生姓名',
-        '科室', '职称', '擅长', '经历', '值班',
-        '主观疗效', '态度', '评价内容', '花费']  # 数据表头 0-3-13
+        '科室', '职称', '擅长', '经历', '疗效满意度',
+        '态度满意度', '累计帮助患者数', '近两周帮助患者数',
+        '值班', '出诊提示', '患者姓名', '症状', '治疗手段',
+        '主观疗效', '看病目的', '态度', '评价内容', '花费']  # 数据表头 0-3-21
 
 
 def savehostipalList():
@@ -101,16 +103,16 @@ def readerData():
         GPInfo("总计数量为：" + str(len(data)))
     return str(len(data))
 
-
+sum=0
 def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
     errornum = 0
     erroract = 0
-    sum = 0
+    global sum
 
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
     timea = str(timeinfo())  # 获取时间方便文件命名
-    with open("./data/" + timea+"-"+str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
+    with open("./data/" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key2)
         writer.writeheader()
         driver = initDriver(idnum)
@@ -126,7 +128,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                 info = doctorinfo(data[i][3], driver=driver)
                 erroract = 0
             except:
-                with open("./data/Error" + timea + "-"+str(idnum)+".csv", 'w', newline='', encoding='utf-8')as fff:
+                with open("./data/Error" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as fff:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
@@ -146,11 +148,21 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                                  '职称': info[ii][2],
                                  '擅长': info[ii][3],
                                  '经历': info[ii][4],
-                                 '值班': info[ii][5],
-                                 '主观疗效': info[ii][6],
-                                 '态度': info[ii][7],
-                                 '评价内容': info[ii][8],
-                                 '花费': info[ii][9]}
+                                 '疗效满意度': info[ii][5],
+                                 '态度满意度': info[ii][6],
+                                 '累计帮助患者数': info[ii][7],
+                                 '近两周帮助患者数': info[ii][8],
+                                 '值班': info[ii][9],
+                                 '出诊提示': info[ii][10],
+                                 '患者姓名': info[ii][11],
+                                 '症状': info[ii][12],
+                                 '看病目的': info[ii][13],
+                                 '治疗手段': info[ii][14],
+                                 '主观疗效': info[ii][15],
+                                 '态度': info[ii][16],
+                                 '评价内容': info[ii][17],
+                                 '花费': info[ii][18]}
+
                     sum += 1
                     writer.writerow(finalInfo)
             except:
@@ -170,24 +182,31 @@ def Threads_save(startnum, endnum):
     tempstartnum = 0
     tempendnum = lang
 
-    #分配线程任务
+    # 分配线程任务
     for i in range(int(num)):
         if i == int(num):
-            cpu = threading.Thread(target=saveinfo,args=(tempstartnum, endnum, sumCPU))
+            cpu = threading.Thread(target=saveinfo, args=(tempstartnum, endnum, sumCPU))
         else:
-            cpu = threading.Thread(target=saveinfo,args=(tempstartnum, tempendnum, sumCPU))
+            cpu = threading.Thread(target=saveinfo, args=(tempstartnum, tempendnum, sumCPU))
         tempstartnum += lang
         tempendnum += lang
         sumCPU += 1
         threads.append(cpu)
-        GPInfo("线程"+str(i+1)+"启动完毕！")
+        GPInfo("线程" + str(i + 1) + "启动完毕！")
+
     for i in threads:
         i.start()
+        time.sleep(10)  # 错峰启动
+
 
 # savehostipalList()
 # savedoctorList(1)
 
 
-#saveinfo(1,5,1)
-readerData()#获取数量
-Threads_save(1,5)
+# saveinfo(1,5,1)
+readerData()  # 获取数量
+endnum = input("输入结束位置_")
+print(timeinfo())
+Threads_save(1, int(endnum))
+if sum==1000:
+    print(timeinfo())

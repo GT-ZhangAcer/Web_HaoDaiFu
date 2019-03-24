@@ -16,17 +16,19 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
 
-#idnum=ID计数器 用于代理、UA计数
+# idnum=ID计数器 用于代理、UA计数
 try:
-    proxy=getIP()#获取代理
+    proxy = getIP()  # 获取代理
 except:
-    GPError(000,"代理获取失败请重试")
+    GPError(000, "代理获取失败请重试")
+
+
 def initDriver(idnum):
     try:
         firefoxOpt = Options()  # 载入配置
         firefoxOpt.add_argument("--headless")
-        GPInfo("代理地址为："+str(proxy[int(int(idnum)%24)]))
-        firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum)%24)])#使用代理
+        GPInfo("代理地址为：" + str(proxy[int(int(idnum) % 24)]))
+        firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % 24)])  # 使用代理
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
         GPInfo("浏览器启动成功")
@@ -72,7 +74,7 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
 
 def hUrl(url):  # 通过城市链接查找医院链接
     req = request.Request(url, headers=headers)
-    html = urlopen(req,timeout=5)
+    html = urlopen(req, timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_content = html_BSObj.find(attrs={"class": "m_ctt_green"})  # 定位目录
     find_url = BeautifulSoup(str(find_content), "lxml")
@@ -91,7 +93,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
     url = url.split("/")[-1:]
     url = 'https://www.haodf.com/tuijian/yiyuan/' + url[0]
     req = request.Request(url, headers=headers)
-    html = urlopen(req,timeout=5)#防假死
+    html = urlopen(req, timeout=5)  # 防假死
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_content = html_BSObj.find(attrs={"class": "box_a-introList box_a-introList01"})  # 定位目录
     # 定位“更多”
@@ -112,7 +114,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
 
 def doctorList(url):  # 从更多中获取医生链接列表
     req = request.Request(url, headers=headers)
-    html = urlopen(req,timeout=5)
+    html = urlopen(req, timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
     find_a = BeautifulSoup(str(find_List), "lxml")
@@ -134,14 +136,24 @@ def doctorinfo(url, driver):  # 查找评价
     # doctor_about = (html_BSObj.find(attrs={"id": "truncate"})).getText()
     # doctor_about = findTittle + "-" + str(doctor_about)  # 获取医生介绍
     xpathhtml = etree.HTML(page)
-    doctor_name = xpathhtml.xpath('//*[@id="doctor_header"]/div[1]/div/a/h1/span[1]/text()')  #名字
-    doctor_keshi = xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[3]/a/h2/text()')# 科室
+    doctor_name = xpathhtml.xpath('//*[@id="doctor_header"]/div[1]/div/a/h1/span[1]/text()')  # 名字
+    doctor_keshi = xpathhtml.xpath(
+        '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[3]/a/h2/text()')  # 科室
     doctor_zhicheng = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[3]/td[3]/text()')  # 职称
     doctor_shanchang = strClean(xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()'))  # 擅长
     doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))  # 职业经历
+    hotpoint1 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[1]/text()'))[
+                -5:]  # 治疗满意度
+    hotpoint2 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[2]/span[1]/text()'))[
+                -5:]  # 态度满意度
+    hotpoint3 = xpathhtml.xpath(
+        '//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[2]/text()')  # 累计帮助患者数
+    hotpoint4 = xpathhtml.xpath(
+        '//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[2]/span[2]/text()')  # 近两周帮助患者数
 
-    # 值班时间
+    # 值班时间以及提升
+    tips = xpathhtml.xpath('//*[@id="doctortimebottr"]/tbody/tr[4]/td[2]/text()')  # 出诊提示
     time_S = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[2]/td')  # 上 中 晚
     time_Z = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[3]/td')  # 此处用*匹配下方所有字符串
     time_W = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[4]/td')
@@ -150,13 +162,13 @@ def doctorinfo(url, driver):  # 查找评价
     def zhiban(obj):
         ii = -1
         num = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-        templist=[]
+        templist = []
         for i in obj:
-            i = etree.tostring(i, encoding='utf-8')#Xpath解码
+            i = etree.tostring(i, encoding='utf-8')  # Xpath解码
             if "top" in str(i):
                 templist.append(num[ii])
             ii += 1
-        if ii==-1:
+        if ii == -1:
             templist.append("无")
         zhibanTime.append(templist)
 
@@ -172,7 +184,7 @@ def doctorinfo(url, driver):  # 查找评价
     ii = 0
     temp_toupiao = ""
     for i in doctor_toupiao:
-        i=etree.tostring(i, encoding='utf-8')#Xpath解码
+        i = etree.tostring(i)  # Xpath解码
         iobj = BeautifulSoup(str(i), "lxml")
         ii += 1  # 第一个是名称 第二个是数据 两个需要相加
         if ii % 2 == 0:
@@ -185,15 +197,22 @@ def doctorinfo(url, driver):  # 查找评价
     returninfo = []
     for i in find_info:
         html = etree.HTML(str(i))
+        name = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]/text()')  # 患者姓名
+        cood = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[2]/td/a/text()')  # 所患疾病
+        think = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[3]/td/span/text()')  # 看病目的
+        tool = strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[4]/td/span/text()'))  # 治疗方式
         attitudeA = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')  # 患者主观疗效
         attitudeB = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[2]/span/text()')  # 态度
         thank = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:])  # 评价
         money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
         returninfo.append(
-            [doctor_name,doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp, zhibanTime, attitudeA,
-             attitudeB, thank, money])
+            [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang,
+             doctor_Exp, hotpoint1, hotpoint2, hotpoint3, hotpoint4,
+             zhibanTime, tips,name,cood,think,
+             tool,attitudeA,attitudeB, thank, money])
     # driver.close()  # 关闭浏览器
-    return returninfo  # 返回[名字 科室 职称 擅长 经历 值班 主观疗效 态度 评价内容 花费]为每一组的数据
+    return returninfo  # 返回[名字 科室 职称 擅长| 经历 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数|
+                        # 值班 出诊提示 患者姓名 症状 看病目的| 治疗手段 主观疗效 态度 评价内容 花费]为每一组的数据 18
 
 
 # if __name__ == '__main__':
