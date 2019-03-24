@@ -1,13 +1,11 @@
 from urllib.request import urlopen
 from urllib import request
 from bs4 import BeautifulSoup
-import time
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-import re
 from Tool import *
 from lxml import etree
-
+from IP import *
 import csv
 
 import traceback  # 错误处理
@@ -18,11 +16,17 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
 
-
-def initDriver():
+#idnum=ID计数器 用于代理、UA计数
+try:
+    proxy=getIP()#获取代理
+except:
+    GPError(000,"代理获取失败请重试")
+def initDriver(idnum):
     try:
         firefoxOpt = Options()  # 载入配置
         firefoxOpt.add_argument("--headless")
+        GPInfo("代理地址为："+str(proxy[int(int(idnum)%24)]))
+        firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum)%24)])#使用代理
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
         GPInfo("浏览器启动成功")
@@ -122,7 +126,6 @@ def doctorList(url):  # 从更多中获取医生链接列表
 def doctorinfo(url, driver):  # 查找评价
     driver.get(url)
     driver.implicitly_wait(3)  # 等待JS加载时间
-    GPAct("正在等待JS反馈")
     time.sleep(2)
     GPAct("正在等待系统返回数据")
     page = driver.page_source
@@ -135,8 +138,8 @@ def doctorinfo(url, driver):  # 查找评价
     doctor_keshi = xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[3]/a/h2/text()')# 科室
     doctor_zhicheng = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[3]/td[3]/text()')  # 职称
-    doctor_shanchang = xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()')  # 擅长
-    doctor_Exp = xpathhtml.xpath('//*[@id="truncate"]/text()')  # 职业经历
+    doctor_shanchang = strClean(xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()'))  # 擅长
+    doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))  # 职业经历
 
     # 值班时间
     time_S = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[2]/td')  # 上 中 晚
@@ -184,8 +187,8 @@ def doctorinfo(url, driver):  # 查找评价
         html = etree.HTML(str(i))
         attitudeA = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')  # 患者主观疗效
         attitudeB = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[2]/span/text()')  # 态度
-        thank = html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:]  # 评价
-        money = html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()')  # 治疗花费
+        thank = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:])  # 评价
+        money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
         returninfo.append(
             [doctor_name,doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp, zhibanTime, attitudeA,
              attitudeB, thank, money])
@@ -217,7 +220,7 @@ def a():
         '''
         url = 'https://www.haodf.com/doctor/DE4rO-XCoLUmy1568JOrYZEIRi.htm'
         print("Start")
-        init_driver = initDriver()  # 初始化浏览器对象
+        init_driver = initDriver(0)  # 初始化浏览器对象
         pp = doctorinfo(url, init_driver)
         print(pp)
 

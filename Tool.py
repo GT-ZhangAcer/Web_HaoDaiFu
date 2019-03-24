@@ -1,8 +1,6 @@
 import sys
 import time
-from bs4 import BeautifulSoup
-#import requests
-from urllib import request
+
 
 
 def GPInfo(info):
@@ -28,27 +26,7 @@ def workPath():
     return WorkPath
 
 
-def get_ip_list():
-    url = 'http://www.xicidaili.com/nn/'
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}
-    #web_data = requests.get(url, headers=headers)
-    soup = BeautifulSoup(web_data.text, 'lxml')
-    ips = soup.find_all('tr')
-    ip_list = []
-    for i in range(1, len(ips)):
-        ip_info = ips[i]
-        tds = ip_info.find_all('td')
-        ip_list.append(tds[1].text + ':' + tds[2].text)
-    url2 = "https://www.2345.com/"
-    for i in ip_list:
-        proxy_support = request.ProxyHandler({'http': i})
-        opener = request.build_opener(proxy_support)
-        opener.addheaders = [("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64)")]
-        request.install_opener(opener)
-        if request.urlopen(url2).read():
-            with open("./data/ip.txt", "w")as f:
-                f.writelines(i+"\n")
-    return ip_list
+
 
 
 
@@ -72,10 +50,13 @@ def uA(int):
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; The World)',
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)',
-        'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)',
+        'Mozilla/4.0 (compatible; MSIE  7.0; Windows NT 5.1; 360SE)',
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)']
     return list[int]
 
+def strClean(str1):
+    str1=str(str1).replace(" ",'').replace("\n","").replace("\t",'').replace("\\n","").replace("\\t","")
+    return str1
 
 def timeinfo():
     timea = time.strftime("%Y-%m-%d-%H-%M", time.localtime())  # 获取当前时间

@@ -1,10 +1,11 @@
 from MainScript import *
+import threading
 
 key0 = ['省份名', '城市名', '医院名', '医院Url']  # 数据表头 0-3
-key1 = ['省份名', '城市名', '医院名', '医生url']  # 数据表头 0-3
+key1 = ['省份名', '城市名', '医院名', '医生Url']  # 数据表头 0-3
 key2 = ['省份名', '城市名', '医院名', '医生姓名',
         '科室', '职称', '擅长', '经历', '值班',
-                                '主观疗效', '态度', '评价内容', '花费']  # 数据表头 0-3-13
+        '主观疗效', '态度', '评价内容', '花费']  # 数据表头 0-3-13
 
 
 def savehostipalList():
@@ -51,7 +52,7 @@ def savehostipalList():
 def savedoctorList(startnum):
     errornum = 0
     erroract = 0
-    sum=0
+    sum = 0
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
         GPInfo("总计数量为：" + str(len(data)))
@@ -81,74 +82,112 @@ def savedoctorList(startnum):
                         errornum += 1
                         erroract += 1
                     continue
-                time.sleep(10)
+                time.sleep(10 + erroract)
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
-                                 '医生url': iii
+                                 '医生Url': iii
                                  }
-                    sum+=1
+                    sum += 1
                     writer.writerow(finalInfo)
-                GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum)+"|写入量"+str(sum))
+                GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
 
 
-def saveinfo():
-    errornum = 0
-    erroract = 0
+# 用于saveinfo函数的数据读取计数
+def readerData():
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        timea = str(timeinfo())
-        with open("./data/" + timea + ".csv", 'w', newline='', encoding='utf-8')as ff:
-            writer = csv.DictWriter(ff, key2)
-            writer.writeheader()
-            driver = initDriver()
-            for i in range(1, len(data)):
-                if i % 20 == 0:
-                    driver.quit()
-                    driver = initDriver()
-                    GPAct("更换浏览器")
-                if erroract % 3 == 2:
-                    GPError("200", "被发现了，暂停3分钟")
-                    time.sleep(180)
-                try:
-                    info = doctorinfo(data[i][3], driver=driver)
-                    erroract = 0
-                except:
-                    with open("./data/Error" + timea + ".csv", 'w', newline='', encoding='utf-8')as fff:
-                        finalInfo = {'省份名': data[i][0],
-                                     '城市名': data[i][1],
-                                     '医院名': data[i][2],
-                                     '医生url': data[i][3]
-                                     }
-                        Ewriter = csv.DictWriter(fff, key0)
-                        Ewriter.writerow(finalInfo)
-                        errornum += 1
-                    continue
-                try:
+        GPInfo("总计数量为：" + str(len(data)))
+    return str(len(data))
+
+
+def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
+    errornum = 0
+    erroract = 0
+    sum = 0
+
+    with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
+        data = list(csv.reader(f))
+    timea = str(timeinfo())  # 获取时间方便文件命名
+    with open("./data/" + timea+"-"+str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
+        writer = csv.DictWriter(ff, key2)
+        writer.writeheader()
+        driver = initDriver(idnum)
+        for i in range(startnum, endnum):
+            if i % 20 == 0:
+                driver.quit()
+                driver = initDriver(idnum)
+                GPAct("更换浏览器")
+            if erroract % 3 == 2:
+                GPError("200", "被发现了，暂停3分钟")
+                time.sleep(180)
+            try:
+                info = doctorinfo(data[i][3], driver=driver)
+                erroract = 0
+            except:
+                with open("./data/Error" + timea + "-"+str(idnum)+".csv", 'w', newline='', encoding='utf-8')as fff:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
-                                 '医生姓名': info[i][0],
-                                 '科室': info[i][1],
-                                 '职称': info[i][2],
-                                 '擅长': info[i][3],
-                                 '经历': info[i][4],
-                                 '值班': info[i][5],
-                                 '主观疗效': info[i][6],
-                                 '态度': info[i][7],
-                                 '评价内容': info[i][8],
-                                 '花费': info[i][9]}
-
-                    writer.writerow(finalInfo)
-                except:
+                                 '医生Url': data[i][3]
+                                 }
+                    Ewriter = csv.DictWriter(fff, key1)
+                    Ewriter.writerow(finalInfo)
                     errornum += 1
-                    GPError(202, "数据不完整")
-                    continue
-                if i % 100 == 0:
-                    GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum))
+                continue
+            try:
+                for ii in range(len(info)):
+                    finalInfo = {'省份名': data[i][0],
+                                 '城市名': data[i][1],
+                                 '医院名': data[i][2],
+                                 '医生姓名': info[ii][0],
+                                 '科室': info[ii][1],
+                                 '职称': info[ii][2],
+                                 '擅长': info[ii][3],
+                                 '经历': info[ii][4],
+                                 '值班': info[ii][5],
+                                 '主观疗效': info[ii][6],
+                                 '态度': info[ii][7],
+                                 '评价内容': info[ii][8],
+                                 '花费': info[ii][9]}
+                    sum += 1
+                    writer.writerow(finalInfo)
+            except:
+                errornum += 1
+                GPError(202, "数据不完整")
+                continue
+            if i % 5 == 0:
+                GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
 
+
+def Threads_save(startnum, endnum):
+    threads = []
+    num = input("请输入线程数[1-25]:")
+    sumCPU = 0  # 指纹、线程计数器[0-24]
+    # 起始位置
+    lang = (int(endnum) - int(startnum)) // int(num)
+    tempstartnum = 0
+    tempendnum = lang
+
+    #分配线程任务
+    for i in range(int(num)):
+        if i == int(num):
+            cpu = threading.Thread(target=saveinfo,args=(tempstartnum, endnum, sumCPU))
+        else:
+            cpu = threading.Thread(target=saveinfo,args=(tempstartnum, tempendnum, sumCPU))
+        tempstartnum += lang
+        tempendnum += lang
+        sumCPU += 1
+        threads.append(cpu)
+        GPInfo("线程"+str(i+1)+"启动完毕！")
+    for i in threads:
+        i.start()
 
 # savehostipalList()
-savedoctorList(1)
-#saveinfo()
+# savedoctorList(1)
+
+
+#saveinfo(1,5,1)
+readerData()#获取数量
+Threads_save(1,5)
