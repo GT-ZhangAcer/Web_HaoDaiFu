@@ -137,26 +137,34 @@ def doctorinfo(url, driver):  # 查找评价
     # doctor_about = findTittle + "-" + str(doctor_about)  # 获取医生介绍
     xpathhtml = etree.HTML(page)
     doctor_name = xpathhtml.xpath('//*[@id="doctor_header"]/div[1]/div/a/h1/span[1]/text()')  # 名字
-    doctor_keshi = xpathhtml.xpath(
-        '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[3]/a/h2/text()')  # 科室
+    doctor_keshi = strClean(xpathhtml.xpath(
+        '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[3]/a/h2/text()'))  # 科室
     doctor_zhicheng = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[3]/td[3]/text()')  # 职称
     doctor_shanchang = strClean(xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()'))  # 擅长
     doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))  # 职业经历
+
     hotpoint1 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[1]/text()'))[
-                -5:]  # 治疗满意度
+                -5:-2]  # 治疗满意度
+    if "00" in hotpoint1:
+        hotpoint1 = "100%"
     hotpoint2 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[2]/span[1]/text()'))[
-                -5:]  # 态度满意度
+                -5:-2]  # 态度满意度
+    if "00" in hotpoint2:
+        hotpoint1 = "100%"
+
     hotpoint3 = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[2]/text()')  # 累计帮助患者数
     hotpoint4 = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[2]/span[2]/text()')  # 近两周帮助患者数
-
+    hotnumber = xpathhtml.xpath(
+        '//*[@id="hitcnt"]/text()')  # 主页浏览量
     # 值班时间以及提升
-    tips = xpathhtml.xpath('//*[@id="doctortimebottr"]/tbody/tr[4]/td[2]/text()')  # 出诊提示
-    time_S = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[2]/td')  # 上 中 晚
-    time_Z = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[3]/td')  # 此处用*匹配下方所有字符串
-    time_W = xpathhtml.xpath('//*[@id="doctortime"]/div[1]/table/tbody/tr[4]/td')
+    tips = strClean(xpathhtml.xpath('//*[@id="doctortimebottr"]/tbody/tr[4]/td[2]/text()'))  # 出诊提示
+    time_S = xpathhtml.xpath('//*[@id="timeup"]/tbody/tr[2]/td[2]/table[2]/tbody/tr[2]/td')  # 上 中 晚
+    time_Z = xpathhtml.xpath('//*[@id="timeup"]/tbody/tr[2]/td[2]/table[2]/tbody/tr[3]/td')  # 此处用*匹配下方所有字符串
+    time_W = xpathhtml.xpath('//*[@id="timeup"]/tbody/tr[2]/td[2]/table[2]/tbody/tr[4]/td')
+
     zhibanTime = []
 
     def zhiban(obj):
@@ -164,9 +172,12 @@ def doctorinfo(url, driver):  # 查找评价
         num = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         templist = []
         for i in obj:
-            i = etree.tostring(i, encoding='utf-8')  # Xpath解码
-            if "top" in str(i):
-                templist.append(num[ii])
+            htmli = etree.tostring(i, encoding="utf-8", pretty_print=True, method="html")  # Xpath解码 显示中文
+            i = BeautifulSoup(htmli, "lxml")
+            if "<img" in str(htmli):
+                i = i.find('span')
+                i = BeautifulSoup(str(i), "lxml").getText()
+                templist.append(num[ii] + "挂号费：" + strClean(str(i)))
             ii += 1
         if ii == -1:
             templist.append("无")
@@ -178,19 +189,14 @@ def doctorinfo(url, driver):  # 查找评价
     zhiban(time_Z)
     zhibanTime.append("晚上")
     zhiban(time_W)
-
-    doctor_toupiao = xpathhtml.xpath('//*[@id="doctorgood"]/div[1]/table/tbody/tr/td')  # 投票
+    # 投票
+    doctor_toupiao = xpathhtml.xpath('//*[@id="doctorgood"]/div[1]/table/tbody/tr/td')
     toupiao = []
-    ii = 0
-    temp_toupiao = ""
+
     for i in doctor_toupiao:
         i = etree.tostring(i)  # Xpath解码
         iobj = BeautifulSoup(str(i), "lxml")
-        ii += 1  # 第一个是名称 第二个是数据 两个需要相加
-        if ii % 2 == 0:
-            toupiao.append(temp_toupiao + iobj.getText())
-        else:
-            temp_toupiao = iobj.getText()
+        toupiao.append(strClean(iobj.getText()))
 
     find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
 
@@ -208,11 +214,12 @@ def doctorinfo(url, driver):  # 查找评价
         returninfo.append(
             [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang,
              doctor_Exp, hotpoint1, hotpoint2, hotpoint3, hotpoint4,
-             zhibanTime, tips,name,cood,think,
-             tool,attitudeA,attitudeB, thank, money])
+             zhibanTime, tips, name, cood, think,
+             tool, attitudeA, attitudeB, thank, money,
+             toupiao, hotnumber])
     # driver.close()  # 关闭浏览器
     return returninfo  # 返回[名字 科室 职称 擅长| 经历 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数|
-                        # 值班 出诊提示 患者姓名 症状 看病目的| 治疗手段 主观疗效 态度 评价内容 花费]为每一组的数据 18
+    # 值班 出诊提示 患者姓名 症状 看病目的| 治疗手段 主观疗效 态度 评价内容 花费|投票 主页浏览量]为每一组的数据 18
 
 
 # if __name__ == '__main__':

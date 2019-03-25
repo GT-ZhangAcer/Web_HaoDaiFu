@@ -104,11 +104,12 @@ def readerData():
     return str(len(data))
 
 sum=0
+
 def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
     errornum = 0
     erroract = 0
     global sum
-
+    global sumCPU
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
     timea = str(timeinfo())  # 获取时间方便文件命名
@@ -116,6 +117,11 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
         writer = csv.DictWriter(ff, key2)
         writer.writeheader()
         driver = initDriver(idnum)
+        try:
+            if str(driver)=="1":
+                sumCPU+=1
+        except:
+            pass
         for i in range(startnum, endnum):
             if i % 20 == 0:
                 driver.quit()
@@ -172,11 +178,11 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
             if i % 5 == 0:
                 GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
 
-
+sumCPU = 0# 指纹、线程计数器[0-24]
 def Threads_save(startnum, endnum):
     threads = []
     num = input("请输入线程数[1-25]:")
-    sumCPU = 0  # 指纹、线程计数器[0-24]
+    global sumCPU
     # 起始位置
     lang = (int(endnum) - int(startnum)) // int(num)
     tempstartnum = 0
