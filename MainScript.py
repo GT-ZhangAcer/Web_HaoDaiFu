@@ -159,6 +159,10 @@ def doctorinfo(url, driver):  # 查找评价
         '//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[2]/span[2]/text()')  # 近两周帮助患者数
     hotnumber = xpathhtml.xpath(
         '//*[@id="hitcnt"]/text()')  # 主页浏览量
+    # 感谢信以及礼物数量
+    goodnum = xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[4]/a[1]/span/text()')
+    giftnum = xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[4]/a[2]/span/text()')
+
     # 值班时间以及提升
     tips = strClean(xpathhtml.xpath('//*[@id="doctortimebottr"]/tbody/tr[4]/td[2]/text()'))  # 出诊提示
     time_S = xpathhtml.xpath('//*[@id="timeup"]/tbody/tr[2]/td[2]/table[2]/tbody/tr[2]/td')  # 上 中 晚
@@ -189,14 +193,33 @@ def doctorinfo(url, driver):  # 查找评价
     zhiban(time_Z)
     zhibanTime.append("晚上")
     zhiban(time_W)
-    # 投票
-    doctor_toupiao = xpathhtml.xpath('//*[@id="doctorgood"]/div[1]/table/tbody/tr/td')
-    toupiao = []
+    # 临床数据
+    people = xpathhtml.xpath('//*[@id="doctorgood"]/div[2]/table/tbody/tr[1]/td/text()')  # 治疗人数
+    peopleing = xpathhtml.xpath('//*[@id="doctorgood"]/div[2]/table/tbody/tr[2]/td/text()')  # 随访人数
+    # 投票 函数
+    doctor_toupiao = xpathhtml.xpath(
+        '/html/body/div[3]/div[1]/div[1]/div[3]/div/div[2]/div/div/div[1]/table/tbody/tr/td')
+    doctor_linchuang = xpathhtml.xpath(
+        '/html/body/div[3]/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[1]/table/tbody/tr/td')
 
-    for i in doctor_toupiao:
-        i = etree.tostring(i)  # Xpath解码
-        iobj = BeautifulSoup(str(i), "lxml")
-        toupiao.append(strClean(iobj.getText()))
+    toupiao = []
+    linchaung = []
+
+    def toupiaodef(info, toupiaoa):
+        for i in info:
+            i = etree.tostring(i)  # Xpath解码
+            iobj = BeautifulSoup(str(i), "lxml")
+            toupiaoa.append(strClean(iobj.getText()))
+
+    toupiaodef(doctor_toupiao, toupiao)  # 患者投票
+    toupiaodef(doctor_linchuang, linchaung)  # 临床经验
+    # 临床经验星级
+    star = xpathhtml.xpath('//*[@id="doctorgood"]/div[2]/table/tbody/tr[3]/td/span/img')
+    starnum = 0  # 星级计数器
+    for i in star:
+        i = etree.tostring(i, encoding="utf-8", pretty_print=True, method="html")
+        if "liang" in str(i):
+            starnum += 1
 
     find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
 
@@ -209,17 +232,19 @@ def doctorinfo(url, driver):  # 查找评价
         tool = strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[4]/td/span/text()'))  # 治疗方式
         attitudeA = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')  # 患者主观疗效
         attitudeB = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[2]/span/text()')  # 态度
+        attitudeC = strClean(html.xpath(
+            '//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()'))  # 感谢信或看病经验
         thank = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:])  # 评价
         money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
         returninfo.append(
-            [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang,
-             doctor_Exp, hotpoint1, hotpoint2, hotpoint3, hotpoint4,
-             zhibanTime, tips, name, cood, think,
-             tool, attitudeA, attitudeB, thank, money,
-             toupiao, hotnumber])
+            [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,  # 返回[名字 科室 职称 擅长 经历 5
+             hotpoint1, hotpoint2, hotpoint3, hotpoint4, linchaung,  # 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数 临床经验统计 5
+             people, peopleing, goodnum, giftnum, starnum, # 治疗人数 随访人数 感谢信 礼物数量 4
+             zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
+             tool, attitudeA, attitudeB, attitudeC, thank,  # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 5
+             money, toupiao, hotnumber])  # 花费 投票  主页浏览量 ]为每一组的数据  3-27
     # driver.close()  # 关闭浏览器
-    return returninfo  # 返回[名字 科室 职称 擅长| 经历 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数|
-    # 值班 出诊提示 患者姓名 症状 看病目的| 治疗手段 主观疗效 态度 评价内容 花费|投票 主页浏览量]为每一组的数据 18
+    return returninfo
 
 
 # if __name__ == '__main__':
@@ -355,4 +380,4 @@ def a():
     start()
 '''
 
-#a()
+# a()

@@ -3,11 +3,13 @@ import threading
 
 key0 = ['省份名', '城市名', '医院名', '医院Url']  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生Url']  # 数据表头 0-3
-key2 = ['省份名', '城市名', '医院名', '医生姓名',
-        '科室', '职称', '擅长', '经历', '疗效满意度',
-        '态度满意度', '累计帮助患者数', '近两周帮助患者数',
-        '值班', '出诊提示', '患者姓名', '症状', '治疗手段',
-        '主观疗效', '看病目的', '态度', '评价内容', '花费']  # 数据表头 0-3-21
+key2 = ['省份名', '城市名', '医院名', '医生姓名',  # 3+1
+        '科室', '职称', '擅长', '经历', '疗效满意度',  # 5
+        '态度满意度', '累计帮助患者数', '近两周帮助患者数',  # 3
+        '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级'  # 6
+                                                 '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
+        '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容',  # 5
+        '花费', '投票', '主页浏览量']  # 3 数据表头 0-3-30
 
 
 def savehostipalList():
@@ -51,14 +53,13 @@ def savehostipalList():
                         writer.writerow(finalInfo)
 
 
-def savedoctorList(startnum):
+def savedoctorList(startnum, endnum, idnum):
     errornum = 0
     erroract = 0
     sum = 0
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
         GPInfo("总计数量为：" + str(len(data)))
-        endnum = input("输入结束位置_")
     with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
@@ -97,13 +98,22 @@ def savedoctorList(startnum):
 
 
 # 用于saveinfo函数的数据读取计数
-def readerData():
+def readerData2():
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
         GPInfo("总计数量为：" + str(len(data)))
     return str(len(data))
 
-sum=0
+
+def readerData1():
+    with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
+        data = list(csv.reader(f))
+        GPInfo("总计数量为：" + str(len(data)))
+    return str(len(data))
+
+
+sum = 0
+
 
 def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
     errornum = 0
@@ -118,8 +128,8 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
         writer.writeheader()
         driver = initDriver(idnum)
         try:
-            if str(driver)=="1":
-                sumCPU+=1
+            if str(driver) == "1":
+                sumCPU += 1
         except:
             pass
         for i in range(startnum, endnum):
@@ -151,23 +161,38 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                                  '医院名': data[i][2],
                                  '医生姓名': info[ii][0],
                                  '科室': info[ii][1],
+
                                  '职称': info[ii][2],
                                  '擅长': info[ii][3],
                                  '经历': info[ii][4],
                                  '疗效满意度': info[ii][5],
                                  '态度满意度': info[ii][6],
                                  '累计帮助患者数': info[ii][7],
+
                                  '近两周帮助患者数': info[ii][8],
-                                 '值班': info[ii][9],
-                                 '出诊提示': info[ii][10],
-                                 '患者姓名': info[ii][11],
-                                 '症状': info[ii][12],
-                                 '看病目的': info[ii][13],
-                                 '治疗手段': info[ii][14],
-                                 '主观疗效': info[ii][15],
-                                 '态度': info[ii][16],
-                                 '评价内容': info[ii][17],
-                                 '花费': info[ii][18]}
+                                 '临床经验统计': info[ii][9],
+                                 '治疗人数': info[ii][10],
+                                 '随访人数': info[ii][11],
+                                 '感谢信': info[ii][12],
+
+                                 '礼物数量': info[ii][13],
+                                 '服务星级': info[ii][14],
+                                 '值班': info[ii][15],
+                                 '出诊提示': info[ii][16],
+                                 '患者姓名': info[ii][17],
+                                 '症状': info[ii][18],
+
+                                 '看病目的': info[ii][19],
+                                 '治疗手段': info[ii][20],
+                                 '主观疗效': info[ii][21],
+                                 '态度': info[ii][22],
+                                 '感谢信&看病经验': info[ii][23],
+
+                                 '评价内容': info[ii][24],
+                                 '花费': info[ii][25],
+                                 '投票': info[ii][26],
+                                 '主页浏览量': info[ii][26]
+                                 }
 
                     sum += 1
                     writer.writerow(finalInfo)
@@ -178,9 +203,39 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
             if i % 5 == 0:
                 GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
 
-sumCPU = 0# 指纹、线程计数器[0-24]
+
+# 多线程模块
+sumCPU = 1  # 指纹、线程计数器[0-24]
+
+
+def Threads_doctorUrl(startnum, endnum):
+    threads = []
+    readerData1()  # 获取数量
+    num = input("请输入线程数[1-25]:")
+    global sumCPU
+    lang = (int(endnum) - int(startnum)) // int(num)
+    tempstartnum = 0
+    tempendnum = lang
+    for i in range(int(num)):
+        if i == int(num):
+            cpu = threading.Thread(target=savedoctorList, args=(tempstartnum, endnum, sumCPU))
+        else:
+            cpu = threading.Thread(target=savedoctorList, args=(tempstartnum, tempendnum, sumCPU))
+        tempstartnum += lang
+        tempendnum += lang
+        sumCPU += 1
+        threads.append(cpu)
+        GPInfo("线程" + str(i + 1) + "准备完毕！")
+    ii = 1
+    for i in threads:
+        i.start()
+        GPInfo("线程" + str(ii + 1) + "启动完毕！")
+        ii += 1
+
+
 def Threads_save(startnum, endnum):
     threads = []
+    readerData2()  # 获取数量
     num = input("请输入线程数[1-25]:")
     global sumCPU
     # 起始位置
@@ -198,10 +253,12 @@ def Threads_save(startnum, endnum):
         tempendnum += lang
         sumCPU += 1
         threads.append(cpu)
-        GPInfo("线程" + str(i + 1) + "启动完毕！")
-
+        GPInfo("线程" + str(i + 1) + "准备完毕！")
+    ii = 1
     for i in threads:
         i.start()
+        GPInfo("线程" + str(ii + 1) + "启动完毕！")
+        ii += 1
         time.sleep(10)  # 错峰启动
 
 
@@ -210,9 +267,9 @@ def Threads_save(startnum, endnum):
 
 
 # saveinfo(1,5,1)
-readerData()  # 获取数量
+
 endnum = input("输入结束位置_")
 print(timeinfo())
 Threads_save(1, int(endnum))
-if sum==1000:
+if sum == 1000:
     print(timeinfo())
