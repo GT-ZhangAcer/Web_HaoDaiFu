@@ -15,20 +15,16 @@ import traceback  # 错误处理
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
-
-# idnum=ID计数器 用于代理、UA计数
-try:
-    proxy = getIP()  # 获取代理
-except:
-    GPError(000, "代理获取失败请重试")
+proxy_S = 0#1默认代理 0默认禁止代理
 
 
 def initDriver(idnum):
     try:
         firefoxOpt = Options()  # 载入配置
         firefoxOpt.add_argument("--headless")
-        GPInfo("代理地址为：" + str(proxy[int(int(idnum) % 24)]))
-        firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % 24)])  # 使用代理
+        if proxy_S == 1:  # Debug模式下禁用代理
+            GPInfo("代理地址为：" + str(proxy[int(int(idnum) % 24)]))
+            firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % 24)])  # 使用代理
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
         GPInfo("浏览器启动成功")
@@ -221,29 +217,57 @@ def doctorinfo(url, driver):  # 查找评价
         if "liang" in str(i):
             starnum += 1
 
-    find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
+    pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
+    driver.get(pageNumUrl)  # 进入详细评论页
+    driver.implicitly_wait(3)  # 等待JS加载时间
+    time.sleep(2)
+    page = driver.page_source  # 获取当前页面源码
+    xpathhtml = etree.HTML(page)
+    NowUrl = driver.current_url  # 获取浏览器当前Url
+    pagenum = strClean(xpathhtml.xpath('//td[@class="hdf_content"]/div/a[@class="p_text"]/text()')[0])[
+              1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
 
-    returninfo = []
-    for i in find_info:
-        html = etree.HTML(str(i))
-        name = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]/text()')  # 患者姓名
-        cood = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[2]/td/a/text()')  # 所患疾病
-        think = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[3]/td/span/text()')  # 看病目的
-        tool = strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[4]/td/span/text()'))  # 治疗方式
-        attitudeA = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')  # 患者主观疗效
-        attitudeB = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[2]/span/text()')  # 态度
-        attitudeC = strClean(html.xpath(
-            '//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()'))  # 感谢信或看病经验
-        thank = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:])  # 评价
-        money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
-        returninfo.append(
-            [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,  # 返回[名字 科室 职称 擅长 经历 5
-             hotpoint1, hotpoint2, hotpoint3, hotpoint4, linchaung,  # 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数 临床经验统计 5
-             people, peopleing, goodnum, giftnum, starnum, # 治疗人数 随访人数 感谢信 礼物数量 4
-             zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
-             tool, attitudeA, attitudeB, attitudeC, thank,  # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 5
-             money, toupiao, hotnumber])  # 花费 投票  主页浏览量 ]为每一组的数据  3-27
+    def pinglun(pagenum):
+        errorTime=0#累了就多休息一下 每错一次就多休息1秒
+        for ii in range(1, int(pagenum)):
+            if ii%3==2:
+                time.sleep(3+int(errorTime))#老规矩 休息一下
+            if ii!=1:
+                pinglunUrl=str(NowUrl)[:-4]+"/"+str(ii)+".htm"
+            else:
+                pinglunUrl=NowUrl
+            driver.get(pinglunUrl)
+            try:
+                find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
+                for i in find_info:
+                    html = etree.HTML(str(i))
+                    name = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]/text()')  # 患者姓名
+                    cood = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[2]/td/a/text()')  # 所患疾病
+                    think = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[3]/td/span/text()')  # 看病目的
+                    tool = strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[4]/td/span/text()'))  # 治疗方式
+                    attitudeA = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[1]/span/text()')  # 患者主观疗效
+                    attitudeB = html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[5]/td[2]/span/text()')  # 态度
+                    attitudeC = strClean(html.xpath(
+                        '//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()'))  # 感谢信或看病经验
+                    thank = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:])  # 评价
+                    money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
+                    returninfo.append(
+                        [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,  # 返回[名字 科室 职称 擅长 经历 5
+                         hotpoint1, hotpoint2, hotpoint3, hotpoint4, linchaung,  # 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数 临床经验统计 5
+                         people, peopleing, goodnum, giftnum, starnum,  # 治疗人数 随访人数 感谢信 礼物数量 4
+                         zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
+                         tool, attitudeA, attitudeB, attitudeC, thank,  # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 5
+                         money, toupiao, hotnumber])  # 花费 投票  主页浏览量 ]为每一组的数据  3-27
+                    errorTime=0#能走两步了就好好干活！
+            except:
+                GPError(203,"好像被发现了 休息一下")
+                errorTime+=1
+                if errorTime%3==2:
+                    time.sleep(30)
+
     # driver.close()  # 关闭浏览器
+    returninfo = []  # 返回数据数组
+    pinglun(pagenum)
     return returninfo
 
 
@@ -251,6 +275,8 @@ def doctorinfo(url, driver):  # 查找评价
 
 def a():
     def debug():
+        global proxy_S
+        proxy_S = 0  # 停止代理
         '''
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
@@ -279,6 +305,15 @@ def a():
 
     debug()
 
+
+#a()
+
+# idnum=ID计数器 用于代理、UA计数
+if proxy_S == 1:
+    try:
+        proxy = getIP()  # 获取代理
+    except:
+        GPError(000, "代理获取失败请重试")
 
 '''
     def start():
@@ -379,5 +414,3 @@ def a():
 
     start()
 '''
-
-# a()

@@ -2,7 +2,6 @@ import sys
 import time
 
 
-
 def GPInfo(info):
     print("INFO:", info)
 
@@ -48,9 +47,12 @@ def uA(int):
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)']
     return list[int]
 
+
 def strClean(str1):
-    str1=str(str1).replace(" ",'').replace("\n","").replace("\t",'').replace("\\n","").replace("\\t","").replace("&nbsp","").replace("\\xa0","").replace("\xa0","")
+    str1 = str(str1).replace(" ", '').replace("\n", "").replace("\t", '').replace("\\n", "").replace("\\t", "").replace(
+        "&nbsp", "").replace("\\xa0", "").replace("\xa0", "").replace("\\", '')#怎么说呢 太诡异了
     return str1
+
 
 def timeinfo():
     timea = time.strftime("%Y-%m-%d-%H-%M", time.localtime())  # 获取当前时间
