@@ -237,6 +237,8 @@ def doctorinfo(url, driver):  # 查找评价
             else:
                 pinglunUrl=NowUrl
             driver.get(pinglunUrl)
+            page = driver.page_source
+            html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
             try:
                 find_info = html_BSObj.findAll(attrs={"class": "doctorjy"})  # 获取详细评论
                 for i in find_info:
@@ -264,6 +266,7 @@ def doctorinfo(url, driver):  # 查找评价
                 errorTime+=1
                 if errorTime%3==2:
                     time.sleep(30)
+                continue
 
     # driver.close()  # 关闭浏览器
     returninfo = []  # 返回数据数组
