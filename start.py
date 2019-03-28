@@ -6,8 +6,8 @@ key1 = ['省份名', '城市名', '医院名', '医生Url']  # 数据表头 0-3
 key2 = ['省份名', '城市名', '医院名', '医生姓名',  # 3+1
         '科室', '职称', '擅长', '经历', '疗效满意度',  # 5
         '态度满意度', '累计帮助患者数', '近两周帮助患者数',  # 3
-        '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级'  # 6
-                                                 '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
+        '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级',  # 6
+        '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
         '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容',  # 5
         '花费', '投票', '主页浏览量']  # 3 数据表头 0-3-30
 
@@ -133,7 +133,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
         except:
             pass
         for i in range(startnum, endnum):
-            if i % 20 == 0:
+            if i % 20 == 19:
                 driver.quit()
                 driver = initDriver(idnum)
                 GPAct("更换浏览器")
@@ -156,6 +156,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                 continue
             try:
                 for ii in range(len(info)):
+
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
@@ -196,10 +197,12 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
 
                     sum += 1
                     writer.writerow(finalInfo)
+
             except:
                 errornum += 1
                 GPError(202, "数据不完整")
                 continue
+
             if i % 5 == 0:
                 GPInfo("当前爬取医生进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
 
@@ -214,9 +217,9 @@ def Threads_doctorUrl(startnum, endnum):
     num = input("请输入线程数[1-25]:")
     global sumCPU
     lang = (int(endnum) - int(startnum)) // int(num)
-    tempstartnum = 0
-    tempendnum = lang
-    for i in range(int(num)):
+    tempstartnum = 1
+    tempendnum = 1 + lang
+    for i in range(1, int(num) + 1):
         if i == int(num):
             cpu = threading.Thread(target=savedoctorList, args=(tempstartnum, endnum, sumCPU))
         else:
@@ -240,24 +243,25 @@ def Threads_save(startnum, endnum):
     global sumCPU
     # 起始位置
     lang = (int(endnum) - int(startnum)) // int(num)
-    tempstartnum = 0
-    tempendnum = lang
+    tempstartnum = 1
+    tempendnum = 1 + lang
 
     # 分配线程任务
-    for i in range(int(num)):
+    for i in range(1, int(num) + 1):
         if i == int(num):
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, endnum, sumCPU))
+
         else:
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, tempendnum, sumCPU))
         tempstartnum += lang
         tempendnum += lang
         sumCPU += 1
         threads.append(cpu)
-        GPInfo("线程" + str(i + 1) + "准备完毕！")
+        GPInfo("线程" + str(i) + "准备完毕！")
     ii = 1
     for i in threads:
         i.start()
-        GPInfo("线程" + str(ii + 1) + "启动完毕！")
+        GPInfo("线程" + str(ii) + "启动完毕！")
         ii += 1
         time.sleep(10)  # 错峰启动
 
@@ -270,6 +274,6 @@ def Threads_save(startnum, endnum):
 
 endnum = input("输入结束位置_")
 print(timeinfo())
-Threads_save(1, int(endnum))
+Threads_save(1, int(endnum) + 1)
 if sum == 1000:
     print(timeinfo())

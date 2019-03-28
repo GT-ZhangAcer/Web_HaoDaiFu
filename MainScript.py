@@ -147,7 +147,7 @@ def doctorinfo(url, driver):  # 查找评价
     hotpoint2 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[2]/span[1]/text()'))[
                 -5:-2]  # 态度满意度
     if "00" in hotpoint2:
-        hotpoint1 = "100%"
+        hotpoint2 = "100%"
 
     hotpoint3 = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[2]/text()')  # 累计帮助患者数
@@ -256,7 +256,7 @@ def doctorinfo(url, driver):  # 查找评价
                     returninfo.append(
                         [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,  # 返回[名字 科室 职称 擅长 经历 5
                          hotpoint1, hotpoint2, hotpoint3, hotpoint4, linchaung,  # 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数 临床经验统计 5
-                         people, peopleing, goodnum, giftnum, starnum,  # 治疗人数 随访人数 感谢信 礼物数量 4
+                         people, peopleing, goodnum, giftnum, starnum,  # 治疗人数 随访人数 感谢信 礼物数量 服务星级4
                          zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
                          tool, attitudeA, attitudeB, attitudeC, thank,  # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 5
                          money, toupiao, hotnumber])  # 花费 投票  主页浏览量 ]为每一组的数据  3-27
