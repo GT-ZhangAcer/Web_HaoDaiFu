@@ -23,7 +23,7 @@ def initDriver(idnum):
         firefoxOpt = Options()  # 载入配置
         firefoxOpt.add_argument("--headless")
         if proxy_S == 1:  # Debug模式下禁用代理
-            GPInfo("代理地址为：" + str(proxy[int(int(idnum) % 24)]))
+            GPInfo("代理地址为：" + str(proxy[int(int(idnum) % 19)]))#只用20个代理IP
             firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % 24)])  # 使用代理
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
@@ -138,7 +138,10 @@ def doctorinfo(url, driver):  # 查找评价
     doctor_zhicheng = xpathhtml.xpath(
         '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[3]/td[3]/text()')  # 职称
     doctor_shanchang = strClean(xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()'))  # 擅长
-    doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))  # 职业经历
+    # 职业经历
+    doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))
+    if len(doctor_Exp)<5:
+        doctor_Exp = strClean(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[5]/td[3]/text()'))
 
     # 医生是否有照片
     if "n1.hdfimg.com/g2/M03/71/DC/yIYBAFw8OIyAQbw2AAAWC2" in str(strClean(xpathhtml.xpath(
@@ -146,6 +149,10 @@ def doctorinfo(url, driver):  # 查找评价
         doctor_img = 0  # 没有照片
     else:
         doctor_img = 1  # 有照片
+
+    #医生推荐热度
+    doctorHot = strClean(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[1]/p[1]/text()'))
+
 
     hotpoint1 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[1]/text()'))[
                 -5:-2]  # 治疗满意度
@@ -166,7 +173,7 @@ def doctorinfo(url, driver):  # 查找评价
     goodnum = xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[4]/a[1]/span/text()')
     giftnum = xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[2]/td[4]/a[2]/span/text()')
 
-    # 值班时间以及提升
+    # 值班时间以及提示
     tips = strClean(xpathhtml.xpath('//*[@id="doctortimebottr"]/tbody/tr[4]/td[2]/text()'))  # 出诊提示
     time_S = xpathhtml.xpath('//*[@id="timeup"]/tbody/tr[2]/td[2]/table[2]/tbody/tr[2]/td')  # 上 中 晚
     time_Z = xpathhtml.xpath('//*[@id="timeup"]/tbody/tr[2]/td[2]/table[2]/tbody/tr[3]/td')  # 此处用*匹配下方所有字符串
@@ -236,17 +243,19 @@ def doctorinfo(url, driver):  # 查找评价
     html_BSObj = BeautifulSoup(page2, "lxml")
     zixuninfoList = html_BSObj.find(attrs={"class": "zixun_list"})  # 定位信息列表
     xpathhtml2 = etree.HTML(str(zixuninfoList))
-    zixuninfoList = xpathhtml2.xpath("//tr")  # 抓取信息列表
-    zixuninfo = []
-    for i in zixuninfoList:
-        temp = []
-        # i = etree.tostring(i, encoding="utf-8", pretty_print=True, method="html")
-        temp.append(strClean(i.xpath('//td[2]/p/text()')))  # 名字
-        temp.append(strClean(i.xpath('//td[3]/p/a/text()')))  # 问题
-        temp.append(strClean(i.xpath('//td[4]/a/text()')))  # 疾病
-        temp.append(strClean(i.xpath('//td[5]/text()[1]')) + "/" + strClean(i.xpath('//tr/td[5]/font/text()')))  # 对话数
-        zixuninfo.append(temp)
-        break
+    zixuninfo = [zixun_people]
+    for i in range(1,10):
+        indexstr='//tr['+str(i+1)+']'
+        temp1 = xpathhtml2.xpath(indexstr)  # 抓取信息列表
+        temp3=etree.tostring(temp1[0], pretty_print=True, method="html")
+        temp3=temp3.decode('utf-8')
+        temp2 = etree.HTML(str(temp3))
+        tempList = []
+        tempList.append(strClean(temp2.xpath('//td[2]/p/text()')))  # 名字
+        tempList.append(strClean(temp2.xpath('//td[3]/p/a/text()')))  # 问题
+        tempList.append(strClean(temp2.xpath('//td[4]/a/text()')))  # 疾病
+        tempList.append(strClean(temp2.xpath('//td[5]/text()[1]')[0].replace("(", '')) + "/" + strClean(temp2.xpath('//tr/td[5]/font/text()')))  # 对话数
+        zixuninfo.append(tempList)
     # 最后-评论抓取
     pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
     driver.get(pageNumUrl)  # 进入详细评论页
@@ -299,7 +308,7 @@ def doctorinfo(url, driver):  # 查找评价
                          zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
                          tool, attitudeA, attitudeB, attitudeC, thank, share1, share2, share3,
                          # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 其它分享x3 8
-                         money, toupiao, hotnumber, zixuninfo, doctor_img])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
+                         money, toupiao, hotnumber, zixuninfo, doctor_img,doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
                     errorTime = 0  # 能走两步了就好好干活！
             except:
                 GPError(203, "好像被发现了 休息一下")
@@ -349,7 +358,7 @@ def a():
     debug()
 
 
-# a()
+#a() #开启Debug模式
 
 # idnum=ID计数器 用于代理、UA计数
 if proxy_S == 1:

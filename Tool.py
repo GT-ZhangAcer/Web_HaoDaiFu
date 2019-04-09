@@ -50,7 +50,7 @@ def uA(int):
 
 def strClean(str1):
     str1 = str(str1).replace(" ", '').replace("\n", "").replace("\t", '').replace("\\n", "").replace("\\t", "").replace(
-        "&nbsp", "").replace("\\xa0", "").replace("\xa0", "").replace("\\", '')#怎么说呢 太诡异了
+        "&nbsp", "").replace("\\xa0", "").replace("\xa0", "").replace("\\", '').replace("\\", '').replace("\\", '')#怎么说呢 太诡异了
     return str1
 
 
