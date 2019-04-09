@@ -6,16 +6,16 @@ from Tool import *
 
 
 def getUA(num):
-    headers = [[{'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}],
-               [{'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50'}],
-               [{'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0;'}],
-               [{'User-Agent': "Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"}],
-               [{'User-Agent': "Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11"}],
-               [{'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)"}],
-               [{'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)"}],
-               [{'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)"}],
-               [{'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)"}],
-               [{'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)"}]
+    headers = [{'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'},
+               {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50'},
+               {'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0;'},
+               {'User-Agent': "Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"},
+               {'User-Agent': "Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11"},
+               {'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)"},
+               {'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)"},
+               {'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)"},
+               {'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)"},
+               {'User-Agent': "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)"}
                ]
     return headers[num]
 
@@ -40,4 +40,10 @@ def getIP():
         iplist.append(str(tempip[0]) + ":" + str(temppost[0]))
 
     print("可用代理数量：", len(iplist)+1)
-    return iplist
+    return iplist#返回IP:端口列表
+
+def getLongIpFile():
+    with open('./IP/ip.txt','r') as f:
+        ipList=str(f.read()).split("\n")
+        print("可用代理数量：", len(ipList))
+        return ipList

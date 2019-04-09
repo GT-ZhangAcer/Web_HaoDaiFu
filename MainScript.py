@@ -15,7 +15,7 @@ import traceback  # 错误处理
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
-proxy_S = 0#1默认代理 0默认禁止代理
+proxy_S = 1  # 1默认代理 0默认禁止代理
 
 
 def initDriver(idnum):
@@ -140,6 +140,13 @@ def doctorinfo(url, driver):  # 查找评价
     doctor_shanchang = strClean(xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()'))  # 擅长
     doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))  # 职业经历
 
+    # 医生是否有照片
+    if "n1.hdfimg.com/g2/M03/71/DC/yIYBAFw8OIyAQbw2AAAWC2" in str(strClean(xpathhtml.xpath(
+            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img')[0])):
+        doctor_img = 0  # 没有照片
+    else:
+        doctor_img = 1  # 有照片
+
     hotpoint1 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[1]/text()'))[
                 -5:-2]  # 治疗满意度
     if "00" in hotpoint1:
@@ -217,6 +224,30 @@ def doctorinfo(url, driver):  # 查找评价
         if "liang" in str(i):
             starnum += 1
 
+    # 咨询情况
+    zixunUrl = "https:" + strClean(
+        xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
+    driver.get(zixunUrl)
+    driver.implicitly_wait(3)  # 等待JS加载时间
+    time.sleep(2)
+    page2 = driver.page_source  # 获取当前页面源码
+    xpathhtml2 = etree.HTML(page2)
+    zixun_people = strClean(xpathhtml2.xpath('/html/body/div[4]/div[2]/div[1]/p/span[2]/span/text()')[0])  # 咨询人数
+    html_BSObj = BeautifulSoup(page2, "lxml")
+    zixuninfoList = html_BSObj.find(attrs={"class": "zixun_list"})  # 定位信息列表
+    xpathhtml2 = etree.HTML(str(zixuninfoList))
+    zixuninfoList = xpathhtml2.xpath("//tr")  # 抓取信息列表
+    zixuninfo = []
+    for i in zixuninfoList:
+        temp = []
+        # i = etree.tostring(i, encoding="utf-8", pretty_print=True, method="html")
+        temp.append(strClean(i.xpath('//td[2]/p/text()')))  # 名字
+        temp.append(strClean(i.xpath('//td[3]/p/a/text()')))  # 问题
+        temp.append(strClean(i.xpath('//td[4]/a/text()')))  # 疾病
+        temp.append(strClean(i.xpath('//td[5]/text()[1]')) + "/" + strClean(i.xpath('//tr/td[5]/font/text()')))  # 对话数
+        zixuninfo.append(temp)
+        break
+    # 最后-评论抓取
     pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
     driver.get(pageNumUrl)  # 进入详细评论页
     driver.implicitly_wait(3)  # 等待JS加载时间
@@ -228,14 +259,14 @@ def doctorinfo(url, driver):  # 查找评价
               1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
 
     def pinglun(pagenum):
-        errorTime=0#累了就多休息一下 每错一次就多休息1秒
+        errorTime = 0  # 累了就多休息一下 每错一次就多休息1秒
         for ii in range(1, int(pagenum)):
-            if ii%3==2:
-                time.sleep(3+int(errorTime))#老规矩 休息一下
-            if ii!=1:
-                pinglunUrl=str(NowUrl)[:-4]+"/"+str(ii)+".htm"
+            if ii % 3 == 2:
+                time.sleep(3 + int(errorTime))  # 老规矩 休息一下
+            if ii != 1:
+                pinglunUrl = str(NowUrl)[:-4] + "/" + str(ii) + ".htm"
             else:
-                pinglunUrl=NowUrl
+                pinglunUrl = NowUrl
             driver.get(pinglunUrl)
             page = driver.page_source
             html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
@@ -252,19 +283,28 @@ def doctorinfo(url, driver):  # 查找评价
                     attitudeC = strClean(html.xpath(
                         '//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()'))  # 感谢信或看病经验
                     thank = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/text()')[1:])  # 评价
+                    # 该患者的其他分享
+                    share1 = strClean(
+                        html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[2]/text()'))  # 选择该医生就诊的理由
+                    share2 = strClean(
+                        html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[3]/text()'))  # 本次挂号途径
+                    share3 = strClean(
+                        html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[4]/text()'))  # 当前情况
                     money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
                     returninfo.append(
-                        [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,  # 返回[名字 科室 职称 擅长 经历 5
+                        [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,
+                         # 返回[名字 科室 职称 擅长 经历 5
                          hotpoint1, hotpoint2, hotpoint3, hotpoint4, linchaung,  # 疗效满意度 态度满意度 累计帮助患者数 近两周帮助患者数 临床经验统计 5
                          people, peopleing, goodnum, giftnum, starnum,  # 治疗人数 随访人数 感谢信 礼物数量 服务星级4
                          zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
-                         tool, attitudeA, attitudeB, attitudeC, thank,  # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 5
-                         money, toupiao, hotnumber])  # 花费 投票  主页浏览量 ]为每一组的数据  3-27
-                    errorTime=0#能走两步了就好好干活！
+                         tool, attitudeA, attitudeB, attitudeC, thank, share1, share2, share3,
+                         # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 其它分享x3 8
+                         money, toupiao, hotnumber, zixuninfo, doctor_img])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
+                    errorTime = 0  # 能走两步了就好好干活！
             except:
-                GPError(203,"好像被发现了 休息一下")
-                errorTime+=1
-                if errorTime%3==2:
+                GPError(203, "好像被发现了 休息一下")
+                errorTime += 1
+                if errorTime % 3 == 2:
                     time.sleep(30)
                 continue
 
@@ -309,12 +349,13 @@ def a():
     debug()
 
 
-#a()
+# a()
 
 # idnum=ID计数器 用于代理、UA计数
 if proxy_S == 1:
     try:
-        proxy = getIP()  # 获取代理
+        # proxy = getIP()  # 获取代理
+        proxy = getLongIpFile()
     except:
         GPError(000, "代理获取失败请重试")
 
