@@ -63,7 +63,7 @@ def savedoctorList(startnum, endnum, idnum):
     with open("./data/ALLDoctorUrl" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
-        for i in range(startnum, int(endnum)):
+        for i in range(startnum, int(endnum)+1):
             url = doctorUrlList(data[i][3])
             for ii in url:
                 if erroract % 3 == 2:
@@ -291,7 +291,7 @@ def Threads_save(startnum, endnum):
 #信息表
 endnum = input("输入结束位置_")
 print(timeinfo())
-Threads_save(1, int(endnum) + 1)
+Threads_save(1, int(endnum))
 
 '''
 savedoctorList(1, 2514, 1)
