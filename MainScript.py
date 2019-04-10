@@ -109,8 +109,16 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
 
 
 def doctorList(url,idnum):  # 从更多中获取医生链接列表
-    req = request.Request(url, headers=headers)
-    html = urlopen(req, timeout=5)
+    #添加代理
+    if proxy_S == 1:
+        httpproxy_handler = request.ProxyHandler({"http": 'http://'+proxy[int(int(idnum) % proxynum)]})
+        opener = request.build_opener(httpproxy_handler)
+        req = request.Request(url, headers=headers)
+        html=opener.open(req,timeout=10).read()
+
+    else:
+        req = request.Request(url, headers=headers)
+        html = urlopen(req, timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
     find_a = BeautifulSoup(str(find_List), "lxml")
@@ -359,7 +367,7 @@ def a():
     debug()
 
 
-#a() #开启Debug模式
+a() #开启Debug模式
 
 # idnum=ID计数器 用于代理、UA计数
 if proxy_S == 1:

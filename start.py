@@ -53,10 +53,11 @@ def savehostipalList():
                         writer.writerow(finalInfo)
 
 
-def savedoctorList(startnum, endnum):
+def savedoctorList(startnum, endnum, idnum):
     errornum = 0
     erroract = 0
     sum = 0
+
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
     with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as ff:
@@ -70,7 +71,7 @@ def savedoctorList(startnum, endnum):
                     GPError("200", "被发现了，暂停3分钟")
                     time.sleep(180)
                 try:
-                    doctorUrl = doctorList(ii)
+                    doctorUrl = doctorList(ii,idnum)
                     erroract = 0
                 except:
                     with open("./data/ErrorALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as fff:
@@ -84,8 +85,10 @@ def savedoctorList(startnum, endnum):
                         Ewriter.writeheader()
                         errornum += 1
                         erroract += 1
+                        GPError("999", traceback.format_exc())
+                        idnum=idnum%10+9#换代理
                     continue
-                time.sleep(5 + erroract)
+                time.sleep(10 + erroract)
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
@@ -290,4 +293,6 @@ print(timeinfo())
 Threads_save(1, int(endnum) + 1)
 '''
 
-
+#医生表
+endnum = input("输入结束位置_")
+Threads_doctorUrl(1, int(endnum) + 1)
