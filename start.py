@@ -85,7 +85,7 @@ def savedoctorList(startnum, endnum):
                         errornum += 1
                         erroract += 1
                     continue
-                time.sleep(10 + erroract)
+                time.sleep(5 + erroract)
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
