@@ -60,7 +60,7 @@ def savedoctorList(startnum, endnum, idnum):
 
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-    with open("./data/ALLDoctorUrl."+str(idnum)+"csv", 'w', newline='', encoding='utf-8')as ff:
+    with open("./data/ALLDoctorUrl."+str(idnum)+".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
         for i in range(startnum, int(endnum)):
