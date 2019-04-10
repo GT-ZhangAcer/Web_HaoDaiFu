@@ -367,7 +367,7 @@ def a():
     debug()
 
 
-a() #开启Debug模式
+#a() #开启Debug模式
 
 # idnum=ID计数器 用于代理、UA计数
 if proxy_S == 1:
