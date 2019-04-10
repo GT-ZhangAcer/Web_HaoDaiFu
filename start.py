@@ -53,13 +53,12 @@ def savehostipalList():
                         writer.writerow(finalInfo)
 
 
-def savedoctorList(startnum, endnum, idnum):
+def savedoctorList(startnum, endnum):
     errornum = 0
     erroract = 0
     sum = 0
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)))
     with open("./data/ALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
@@ -67,6 +66,7 @@ def savedoctorList(startnum, endnum, idnum):
             url = doctorUrlList(data[i][3])
             for ii in url:
                 if erroract % 3 == 2:
+
                     GPError("200", "被发现了，暂停3分钟")
                     time.sleep(180)
                 try:
@@ -112,14 +112,14 @@ def readerData1():
     return str(len(data))
 
 
-sum = 0#抓去计数器
+sum = 0#抓取计数器
 
 
 def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
     errornum = 0
     erroract = 0
     global sum
-    global sumCPU
+    global sumCPU#更换idnum
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
     timea = str(timeinfo())  # 获取时间方便文件命名
@@ -135,7 +135,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
         for i in range(startnum, endnum):
             if i % 20 == 19:
                 driver.quit()
-                driver = initDriver(idnum)
+                driver = initDriver(sumCPU)
                 GPAct("更换浏览器")
             if erroract % 3 == 2:
                 GPError("200", "被发现了，暂停3分钟")
@@ -153,6 +153,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                     Ewriter = csv.DictWriter(fff, key1)
                     Ewriter.writerow(finalInfo)
                     errornum += 1
+                    sumCPU += 1
                 continue
             try:
                 for ii in range(len(info)):
@@ -236,11 +237,11 @@ def Threads_doctorUrl(startnum, endnum):
         tempendnum += lang
         sumCPU += 1
         threads.append(cpu)
-        GPInfo("线程" + str(i + 1) + "准备完毕！")
+        GPInfo("线程" + str(i) + "准备完毕！")
     ii = 1
     for i in threads:
         i.start()
-        GPInfo("线程" + str(ii + 1) + "启动完毕！")
+        GPInfo("线程" + str(ii) + "启动完毕！")
         ii += 1
 
 
@@ -282,7 +283,11 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
+'''
+#信息表
 endnum = input("输入结束位置_")
 print(timeinfo())
 Threads_save(1, int(endnum) + 1)
+'''
+
 

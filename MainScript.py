@@ -16,15 +16,15 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
 proxy_S = 1  # 1默认代理 0默认禁止代理
-
+proxynum=19#代理循环数量 填最大代理量即可
 
 def initDriver(idnum):
     try:
         firefoxOpt = Options()  # 载入配置
         firefoxOpt.add_argument("--headless")
         if proxy_S == 1:  # Debug模式下禁用代理
-            GPInfo("代理地址为：" + str(proxy[int(int(idnum) % 19)]))#只用20个代理IP
-            firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % 24)])  # 使用代理
+            GPInfo("代理地址为：" + str(proxy[int(int(idnum) % proxynum)]))#只用20个代理IP
+            firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % proxynum)])  # 使用代理
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
         GPInfo("浏览器启动成功")
@@ -108,7 +108,7 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
     return more_url
 
 
-def doctorList(url):  # 从更多中获取医生链接列表
+def doctorList(url,idnum):  # 从更多中获取医生链接列表
     req = request.Request(url, headers=headers)
     html = urlopen(req, timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
@@ -342,10 +342,10 @@ def a():
        
         url = 'https://www.haodf.com/hospital/DE4raCNSz6OmG3OUNZWCWNv0.htm'
         print(doctorUrlList(url))
-
         
+        '''
         url='http://www.haodf.com/tuijian/DE4raCNSz6OmG3OUNZWCWNv0/daizhuangpaozhen.htm'
-        print(doctorList(url))
+        print(doctorList(url,1))
         '''
         url = 'https://www.haodf.com/doctor/DE4rO-XCoLUmy1568JOrYZEIRi.htm'
         print("Start")
@@ -355,6 +355,7 @@ def a():
 
         init_driver.quit()  # 退出浏览器
 
+        '''
     debug()
 
 
