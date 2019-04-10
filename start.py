@@ -12,7 +12,7 @@ key2 = ['医生ID', '省份名', '城市名', '医院名', '医生姓名',  # 1+
         '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容', '就诊理由', '挂号途径', '当前情况',  # 8
         '花费', '投票', '主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-33
 # 记录可视化日志
-logw = LogWriter("c:/log/main_log", sync_cycle=1)
+logw = LogWriter("c:/log/main_log", sync_cycle=5)
 with logw.mode('抓取总数') as logger:
     allTag = logger.scalar("总概览")
 with logw.mode('错误总数') as logger:
