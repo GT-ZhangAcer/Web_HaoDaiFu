@@ -15,7 +15,7 @@ import traceback  # 错误处理
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
-proxy_S = 1  # 1默认代理 0默认禁止代理
+proxy_S = 0  # 1默认代理 0默认禁止代理
 proxynum=19#代理循环数量 填最大代理量即可
 
 def initDriver(idnum):
@@ -118,7 +118,7 @@ def doctorList(url,idnum):  # 从更多中获取医生链接列表
 
     else:
         req = request.Request(url, headers=headers)
-        html = urlopen(req, timeout=5)
+        html = urlopen(req, timeout=10)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
     find_a = BeautifulSoup(str(find_List), "lxml")

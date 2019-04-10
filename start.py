@@ -1,15 +1,15 @@
 from MainScript import *
 import threading
 
-key0 = ['省份名', '城市名', '医院名', '医院Url']  # 数据表头 0-3
-key1 = ['省份名', '城市名', '医院名', '医生Url']  # 数据表头 0-3
-key2 = ['省份名', '城市名', '医院名', '医生姓名',  # 3+1
+key0 = ['省份名', '城市名', '医院名', '医院Url',]  # 数据表头 0-3
+key1 = ['省份名', '城市名', '医院名', '医生Url','医生ID']  # 数据表头 0-3
+key2 = ['医生ID','省份名', '城市名', '医院名', '医生姓名',  # 1+3+1
         '科室', '职称', '擅长', '经历', '疗效满意度',  # 5
         '态度满意度', '累计帮助患者数', '近两周帮助患者数',  # 3
         '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级',  # 6
         '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
         '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容', '就诊理由', '挂号途径', '当前情况',  # 8
-        '花费', '投票', '主页浏览量', '咨询信息列表','照片','推荐热度']  # 5 数据表头 0-3-32
+        '花费', '投票', '主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-33
 
 
 def savehostipalList():
@@ -60,18 +60,17 @@ def savedoctorList(startnum, endnum, idnum):
 
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-    with open("./data/ALLDoctorUrl."+str(idnum)+".csv", 'w', newline='', encoding='utf-8')as ff:
+    with open("./data/ALLDoctorUrl" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
         for i in range(startnum, int(endnum)):
             url = doctorUrlList(data[i][3])
             for ii in url:
                 if erroract % 3 == 2:
-
                     GPError("200", "被发现了，暂停3分钟")
                     time.sleep(180)
                 try:
-                    doctorUrl = doctorList(ii,idnum)
+                    doctorUrl = doctorList(ii, idnum)
                     erroract = 0
                 except:
                     with open("./data/ErrorALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as fff:
@@ -86,14 +85,15 @@ def savedoctorList(startnum, endnum, idnum):
                         errornum += 1
                         erroract += 1
                         GPError("999", traceback.format_exc())
-                        idnum=idnum%10+9#换代理
+                        idnum = idnum % 10 + 9  # 换代理
                     continue
                 time.sleep(10 + erroract)
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
-                                 '医生Url': iii
+                                 '医生Url': iii,
+                                 '医生ID': sum
                                  }
                     sum += 1
                     writer.writerow(finalInfo)
@@ -115,14 +115,14 @@ def readerData1():
     return str(len(data))
 
 
-sum = 0#抓取计数器
+sum = 0  # 抓取计数器
 
 
 def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
     errornum = 0
     erroract = 0
     global sum
-    global sumCPU#更换idnum
+    global sumCPU  # 更换idnum
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
     timea = str(timeinfo())  # 获取时间方便文件命名
@@ -135,7 +135,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                 sumCPU += 1
         except:
             pass
-        for i in range(startnum, endnum):
+        for i in range(startnum, endnum+1):
             if i % 20 == 19:
                 driver.quit()
                 driver = initDriver(sumCPU)
@@ -151,7 +151,8 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
                                  '医院名': data[i][2],
-                                 '医生Url': data[i][3]
+                                 '医生Url': data[i][3],
+                                 '医生ID': data[i][4]
                                  }
                     Ewriter = csv.DictWriter(fff, key1)
                     Ewriter.writerow(finalInfo)
@@ -160,51 +161,54 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                 continue
             try:
                 for ii in range(len(info)):
-                    finalInfo = {'省份名': data[i][0],
-                                 '城市名': data[i][1],
-                                 '医院名': data[i][2],
-                                 '医生姓名': info[ii][0],
-                                 '科室': info[ii][1],
+                    finalInfo = {
+                        '医生ID': data[i][4],
 
-                                 '职称': info[ii][2],
-                                 '擅长': info[ii][3],
-                                 '经历': info[ii][4],
-                                 '疗效满意度': info[ii][5],
-                                 '态度满意度': info[ii][6],
-                                 '累计帮助患者数': info[ii][7],
+                        '省份名': data[i][0],
+                        '城市名': data[i][1],
+                        '医院名': data[i][2],
+                        '医生姓名': info[ii][0],
+                        '科室': info[ii][1],
 
-                                 '近两周帮助患者数': info[ii][8],
-                                 '临床经验统计': info[ii][9],
-                                 '治疗人数': info[ii][10],
-                                 '随访人数': info[ii][11],
-                                 '感谢信': info[ii][12],
+                        '职称': info[ii][2],
+                        '擅长': info[ii][3],
+                        '经历': info[ii][4],
+                        '疗效满意度': info[ii][5],
+                        '态度满意度': info[ii][6],
+                        '累计帮助患者数': info[ii][7],
 
-                                 '礼物数量': info[ii][13],
-                                 '服务星级': info[ii][14],
-                                 '值班': info[ii][15],
-                                 '出诊提示': info[ii][16],
-                                 '患者姓名': info[ii][17],
-                                 '症状': info[ii][18],
+                        '近两周帮助患者数': info[ii][8],
+                        '临床经验统计': info[ii][9],
+                        '治疗人数': info[ii][10],
+                        '随访人数': info[ii][11],
+                        '感谢信': info[ii][12],
 
-                                 '看病目的': info[ii][19],
-                                 '治疗手段': info[ii][20],
-                                 '主观疗效': info[ii][21],
-                                 '态度': info[ii][22],
-                                 '感谢信&看病经验': info[ii][23],
+                        '礼物数量': info[ii][13],
+                        '服务星级': info[ii][14],
+                        '值班': info[ii][15],
+                        '出诊提示': info[ii][16],
+                        '患者姓名': info[ii][17],
+                        '症状': info[ii][18],
 
-                                 '评价内容': info[ii][24],
-                                 '就诊理由': info[ii][25],
-                                 '挂号途径': info[ii][26],
-                                 '当前情况': info[ii][27],
-                                 '花费': info[ii][28],
+                        '看病目的': info[ii][19],
+                        '治疗手段': info[ii][20],
+                        '主观疗效': info[ii][21],
+                        '态度': info[ii][22],
+                        '感谢信&看病经验': info[ii][23],
 
-                                 '投票': info[ii][29],
-                                 '主页浏览量': info[ii][30],
-                                 '咨询信息列表':info[ii][31],
-                                 '照片':info[ii][32],
-                                 '推荐热度': info[ii][33]
+                        '评价内容': info[ii][24],
+                        '就诊理由': info[ii][25],
+                        '挂号途径': info[ii][26],
+                        '当前情况': info[ii][27],
+                        '花费': info[ii][28],
 
-                                 }
+                        '投票': info[ii][29],
+                        '主页浏览量': info[ii][30],
+                        '咨询信息列表': info[ii][31],
+                        '照片': info[ii][32],
+                        '推荐热度': info[ii][33]
+
+                    }
 
                     sum += 1
                     writer.writerow(finalInfo)
@@ -279,20 +283,22 @@ def Threads_save(startnum, endnum):
 
 
 # savehostipalList()
-# savedoctorList(1)
 
-
-# saveinfo(1,5,1)
 """
 运行区
 """
-'''
+
 #信息表
 endnum = input("输入结束位置_")
 print(timeinfo())
 Threads_save(1, int(endnum) + 1)
-'''
 
+'''
+savedoctorList(1, 2514, 1)
+'''
+'''
 #医生表
 endnum = input("输入结束位置_")
 Threads_doctorUrl(1, int(endnum) + 1)
+'''
+
