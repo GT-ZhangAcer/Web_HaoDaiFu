@@ -1,16 +1,25 @@
 from MainScript import *
 import threading
+from visualdl import LogWriter
 
-key0 = ['省份名', '城市名', '医院名', '医院Url',]  # 数据表头 0-3
-key1 = ['省份名', '城市名', '医院名', '医生Url','医生ID']  # 数据表头 0-3
-key2 = ['医生ID','省份名', '城市名', '医院名', '医生姓名',  # 1+3+1
+key0 = ['省份名', '城市名', '医院名', '医院Url', ]  # 数据表头 0-3
+key1 = ['省份名', '城市名', '医院名', '医生Url', '医生ID']  # 数据表头 0-3
+key2 = ['医生ID', '省份名', '城市名', '医院名', '医生姓名',  # 1+3+1
         '科室', '职称', '擅长', '经历', '疗效满意度',  # 5
         '态度满意度', '累计帮助患者数', '近两周帮助患者数',  # 3
         '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级',  # 6
         '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
         '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容', '就诊理由', '挂号途径', '当前情况',  # 8
         '花费', '投票', '主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-33
+# 记录可视化日志
+logw = LogWriter("c:/log/main_log", sync_cycle=5)
+with logw.mode('抓取总数') as logger:
+    allTag = logger.scalar("总概览")
+with logw.mode('错误总数') as logger:
+    allErrorTag = logger.scalar("总概览")
 
+
+# visualDL --logdir c:/log/main_log --port 8080 --host 127.0.0.10
 
 def savehostipalList():
     csvName = "./data/ALLHostipalUrl" + str(timeinfo()) + ".csv"
@@ -63,7 +72,7 @@ def savedoctorList(startnum, endnum, idnum):
     with open("./data/ALLDoctorUrl" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
-        for i in range(startnum, int(endnum)+1):
+        for i in range(startnum, int(endnum) + 1):
             url = doctorUrlList(data[i][3])
             for ii in url:
                 if erroract % 3 == 2:
@@ -121,8 +130,18 @@ sum = 0  # 抓取计数器
 def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同代理
     errornum = 0
     erroract = 0
-    global sum
+    sum = 0  # 总评论计数器
+
     global sumCPU  # 更换idnum
+
+    # 可视化
+
+    with logw.mode('医生评论数') as logger:
+        conTag = logger.scalar('线程[' + str(idnum) + "]评论抓取" + str(startnum)+"-"+str(endnum))
+    with logw.mode('抓取错误数') as logger:
+        errorTag = logger.scalar('线程[' + str(idnum) + "]评论抓取" + str(startnum)+"-"+str(endnum))
+
+    # 读取文件
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
     timea = str(timeinfo())  # 获取时间方便文件命名
@@ -135,7 +154,8 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                 sumCPU += 1
         except:
             pass
-        for i in range(startnum, endnum+1):
+        for i in range(startnum, endnum + 1):
+            sumOnly = 0  # 单医生评论计数器
             if i % 20 == 19:
                 driver.quit()
                 driver = initDriver(sumCPU)
@@ -144,7 +164,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                 GPError("200", "被发现了，暂停3分钟")
                 time.sleep(180)
             try:
-                info = doctorinfo(data[i][3], driver=driver)
+                info = doctorinfo(data[i][3], driver=driver)  # 导入医生链接
                 erroract = 0
             except:
                 with open("./data/Error" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as fff:
@@ -157,6 +177,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                     Ewriter = csv.DictWriter(fff, key1)
                     Ewriter.writerow(finalInfo)
                     errornum += 1
+                    errorTag.add_record(i, 0)  # 输入可视化数据
                     sumCPU += 1
                 continue
             try:
@@ -210,9 +231,12 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
 
                     }
 
-                    sum += 1
+                    sumOnly += 1
                     writer.writerow(finalInfo)
-
+                sum += sumOnly
+                conTag.add_record(i, sumOnly)  # 单医生评论量可视化
+                allTag.add_record(idnum, sum)  # 线程总评论量可视化
+                allErrorTag.add_record(idnum, errornum)  # 线程总错误
             except:
                 errornum += 1
                 GPError(202, "数据不完整")
@@ -255,6 +279,7 @@ def Threads_doctorUrl(startnum, endnum):
 def Threads_save(startnum, endnum):
     threads = []
     readerData2()  # 获取数量
+
     num = input("请输入线程数[1-25]:")
     global sumCPU
     # 起始位置
@@ -266,6 +291,7 @@ def Threads_save(startnum, endnum):
     for i in range(1, int(num) + 1):
         if i == int(num):
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, endnum, sumCPU))
+
 
         else:
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, tempendnum, sumCPU))
@@ -287,18 +313,17 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
-'''
-#信息表
+
+# 信息表
 endnum = input("输入结束位置_")
 print(timeinfo())
 Threads_save(1, int(endnum))
 
 '''
 savedoctorList(1, 2514, 1)
-
+'''
 '''
 #医生表
 endnum = input("输入结束位置_")
 Threads_doctorUrl(1, int(endnum) + 1)
 '''
-

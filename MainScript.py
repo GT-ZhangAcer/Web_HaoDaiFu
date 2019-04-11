@@ -15,7 +15,7 @@ import traceback  # 错误处理
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
-proxy_S = 0  # 1默认代理 0默认禁止代理
+proxy_S = 1  # 1默认代理 0默认禁止代理
 proxynum=19#代理循环数量 填最大代理量即可
 
 def initDriver(idnum):
@@ -131,8 +131,7 @@ def doctorList(url,idnum):  # 从更多中获取医生链接列表
 
 def doctorinfo(url, driver):  # 查找评价
     driver.get(url)
-    driver.implicitly_wait(3)  # 等待JS加载时间
-    time.sleep(2)
+    driver.set_page_load_timeout(5)# 等待JS加载时间
     GPAct("正在等待系统返回数据")
     page = driver.page_source
     html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
@@ -239,12 +238,12 @@ def doctorinfo(url, driver):  # 查找评价
         if "liang" in str(i):
             starnum += 1
 
+    '''
     # 咨询情况
     zixunUrl = "https:" + strClean(
         xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
     driver.get(zixunUrl)
-    driver.implicitly_wait(3)  # 等待JS加载时间
-    time.sleep(2)
+    driver.set_page_load_timeout(5)# 等待JS加载时间
     page2 = driver.page_source  # 获取当前页面源码
     xpathhtml2 = etree.HTML(page2)
     zixun_people = strClean(xpathhtml2.xpath('/html/body/div[4]/div[2]/div[1]/p/span[2]/span/text()')[0])  # 咨询人数
@@ -264,11 +263,13 @@ def doctorinfo(url, driver):  # 查找评价
         tempList.append(strClean(temp2.xpath('//td[4]/a/text()')))  # 疾病
         tempList.append(strClean(temp2.xpath('//td[5]/text()[1]')[0].replace("(", '')) + "/" + strClean(temp2.xpath('//tr/td[5]/font/text()')))  # 对话数
         zixuninfo.append(tempList)
+    '''
+    zixuninfo=['暂不抓取']
+
     # 最后-评论抓取
     pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
     driver.get(pageNumUrl)  # 进入详细评论页
-    driver.implicitly_wait(3)  # 等待JS加载时间
-    time.sleep(2)
+    driver.set_page_load_timeout(5)# 等待JS加载时间
     page = driver.page_source  # 获取当前页面源码
     xpathhtml = etree.HTML(page)
     NowUrl = driver.current_url  # 获取浏览器当前Url
@@ -285,6 +286,7 @@ def doctorinfo(url, driver):  # 查找评价
             else:
                 pinglunUrl = NowUrl
             driver.get(pinglunUrl)
+            driver.set_page_load_timeout(5)  # 等待JS加载时间
             page = driver.page_source
             html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
             try:
