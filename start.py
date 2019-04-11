@@ -287,7 +287,7 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
-
+'''
 #信息表
 endnum = input("输入结束位置_")
 print(timeinfo())
@@ -295,7 +295,7 @@ Threads_save(1, int(endnum))
 
 '''
 savedoctorList(1, 2514, 1)
-'''
+
 '''
 #医生表
 endnum = input("输入结束位置_")
