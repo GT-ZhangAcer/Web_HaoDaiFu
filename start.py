@@ -120,8 +120,11 @@ def savedoctorList(startnum, endnum, idnum):
                 driver.quit()
                 driver = initDriver(proxy.findProxy())
                 GPAct("更换浏览器")
-            url = doctorUrlList(data[i][3], driver)
-            time.sleep(3)  # 等待数据处理
+            try:
+                url = doctorUrlList(data[i][3], driver)
+                time.sleep(1)  # 等待数据处理
+            except:
+                continue
             for ii in url:
                 try:
                     if sum % 10 == 9:
@@ -130,7 +133,7 @@ def savedoctorList(startnum, endnum, idnum):
                         GPAct("更换浏览器")
                     url = doctorUrlList(data[i][3], driver)
                     doctorUrl = doctorList(ii, driver)
-                    time.sleep(3)  # 等待数据处理
+                    time.sleep(1)  # 等待数据处理
                     erroract = 0
                 except:
                     with open("./data/ErrorALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as fff:
@@ -145,7 +148,7 @@ def savedoctorList(startnum, endnum, idnum):
                         errornum += 1
                         erroract += 1
                         proxy.error()
-                        GPError("999", traceback.format_exc())
+                        #GPError("999", traceback.format_exc())
                     continue
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
@@ -374,6 +377,7 @@ savedoctorList(1, 1, 1)
 
 '''
 # 医生表
+starnum = input("输入结束位置_")
 endnum = input("输入结束位置_")
-Threads_doctorUrl(1, int(endnum) + 1)
+Threads_doctorUrl(starnum, int(endnum) + 1)
 
