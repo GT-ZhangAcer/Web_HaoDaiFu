@@ -5,7 +5,7 @@ from urllib.request import urlopen
 import time
 from Tool import *
 
-
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
 def getUA(num):
     headers = [{'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'},
                {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50'},
@@ -63,7 +63,7 @@ class proxyc:
     #从API获取代理
     def findapi(self):
         url = "http://www.66ip.cn/mo.php?sxb=&tqsl=1000&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea="
-        req = request.Request(url)
+        req = request.Request(url, headers=headers)
         html = urlopen(req, timeout=5)
         html = BeautifulSoup(html, "lxml")
         xpathhtml = etree.HTML(str(html))

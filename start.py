@@ -1,6 +1,7 @@
 from MainScript import *
 import threading
 from visualdl import LogWriter
+from IP import proxyc
 
 key0 = ['省份名', '城市名', '医院名', '医院Url', ]  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生Url', '医生ID']  # 数据表头 0-3
@@ -34,6 +35,7 @@ if proxy_S == 1:
         proxy=proxyc(proxynum=proxynum)#实例化代理获取器
 
     except:
+
         GPError(000, "代理获取失败请重试")
 
 
@@ -54,6 +56,7 @@ def initDriver(proxyinfo):#传入代理地址
             idnum += 1
             return driver
         except:
+            GPError("999", traceback.format_exc())
             GPError("001", "浏览器启动失败")
             idnum += 1
             continue
@@ -377,7 +380,6 @@ savedoctorList(1, 1, 1)
 
 '''
 # 医生表
-starnum = input("输入结束位置_")
+starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_doctorUrl(starnum, int(endnum) + 1)
-
