@@ -3,6 +3,8 @@ from urllib import request
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from Tool import *
 from lxml import etree
 from IP import *
@@ -90,7 +92,7 @@ def doctorUrlList(url,driver):  # 获取推荐医生列表页面
     print("医生链接", url)
     print("更多", find_more)
     print("返回：",more_url)'''
-
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(Keys.CONTROL).perform()#关闭当前页面
     # 返回 更多 的链接
     return more_url
 
@@ -108,6 +110,7 @@ def doctorList(url,driver):  # 从更多中获取医生链接列表
     doctorList = []
     for i in find_a:
         doctorList.append("https://" + str(i.get("href"))[2:])
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(Keys.CONTROL).perform()#关闭当前页面
     return doctorList  # 返回医生详情页链接
 
 
