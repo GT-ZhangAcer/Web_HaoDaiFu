@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from lxml import etree
 from urllib import request
+from urllib.request import urlopen
 import time
 from Tool import *
 
@@ -47,3 +48,44 @@ def getLongIpFile():
         ipList=str(f.read()).split("\n")
         print("可用代理数量：", len(ipList))
         return ipList
+
+
+class proxyc:
+    i = 0  # 循环计数器 达到proxynum数量则重新获取代理
+    api = []
+    proxynum=1#代理循环数
+
+    #先初始化得到代理
+    def __init__(self,proxynum):
+        self.findapi()
+        self.proxynum=proxynum
+
+    #从API获取代理
+    def findapi(self):
+        url = "http://www.66ip.cn/mo.php?sxb=&tqsl=1000&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea="
+        req = request.Request(url)
+        html = urlopen(req, timeout=5)
+        html = BeautifulSoup(html, "lxml")
+        xpathhtml = etree.HTML(str(html))
+        html = xpathhtml.xpath("/html/body")
+        apiList = etree.tostring(html[0])
+        apiList = str(apiList).split("<br/>")
+
+        for i in apiList[5:-50]:
+            self.api.append(
+                i.replace("&#13;", "").replace('\\t', "").replace('\\n', "").replace("&", "").replace("#", "").replace(
+                    '\\', ""))
+
+    #弹出一个代理
+    def findProxy(self):
+        proxyinfo = self.api[self.i]
+        self.i += 1
+        if self.i == self.proxynum - 20:
+            self.findapi()
+            self.i=0
+        print(self.i)
+        return proxyinfo
+
+    #出错之后弹出下一个代理
+    def error(self):
+        self.i += 1
