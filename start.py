@@ -18,9 +18,43 @@ with logw.mode('抓取总数') as logger:
 with logw.mode('错误总数') as logger:
     allErrorTag = logger.scalar("总概览")
 
-
 # visualDL --logdir c:/log/main_log --port 8080 --host 127.0.0.10
 
+# 浏览器设定
+proxy_S = 1  # 1默认代理 0默认禁止代理
+proxynum = 280  # 代理循环数量 填最大代理量即可
+idnum = 0  # 设备指纹
+
+# idnum=ID计数器 用于代理、UA计数
+if proxy_S == 1:
+    try:
+        # proxy = getIP()  # 获取代理
+        proxy = getLongIpFile()
+    except:
+        GPError(000, "代理获取失败请重试")
+
+def initDriver():
+    firefoxOpt = Options()  # 载入配置
+    global idnum
+    firefoxOpt.add_argument("--headless")
+    while (1):
+        try:
+            if proxy_S == 1:  # Debug模式下禁用代理
+                GPInfo("代理地址为：" + str(proxy[int(int(idnum) % proxynum)]))
+                firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % proxynum)])  # 使用代理
+            GPAct("启动浏览器")
+            driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
+            GPInfo("浏览器启动成功")
+            GPInfo("当前指纹为："+str(idnum))
+            idnum += 1
+            return driver
+        except:
+            GPError("001", "浏览器启动失败")
+            idnum += 1
+            continue
+
+
+# 抓取主循环
 def savehostipalList():
     csvName = "./data/ALLHostipalUrl" + str(timeinfo()) + ".csv"
     with open(csvName, 'w', newline='', encoding='utf-8') as f:  # 数据准备写入
@@ -51,15 +85,15 @@ def savehostipalList():
                     GPAct("防止反爬检测，暂停进行等待")
                     GPInfo("当前状态：第" + str(temp_shf + 1) + "个省份")
                     time.sleep(20)
-                    for temp_yy in range(len(hostipal[0])):
-                        hostipalName = hostipal[0][temp_yy]  # 医院名
-                        hostipalUrl = hostipal[1][temp_yy]  # 医院链接
-                        finalInfo = {'省份名': shfName,
-                                     '城市名': chsName,
-                                     '医院名': hostipalName,
-                                     '医院Url': hostipalUrl
-                                     }
-                        writer.writerow(finalInfo)
+                for temp_yy in range(len(hostipal[0])):
+                    hostipalName = hostipal[0][temp_yy]  # 医院名
+                    hostipalUrl = hostipal[1][temp_yy]  # 医院链接
+                    finalInfo = {'省份名': shfName,
+                                 '城市名': chsName,
+                                 '医院名': hostipalName,
+                                 '医院Url': hostipalUrl
+                                 }
+                    writer.writerow(finalInfo)
 
 
 def savedoctorList(startnum, endnum, idnum):
@@ -72,14 +106,18 @@ def savedoctorList(startnum, endnum, idnum):
     with open("./data/ALLDoctorUrl" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
+        driver=initDriver()
         for i in range(startnum, int(endnum) + 1):
-            url = doctorUrlList(data[i][3])
+            if sum % 50 == 49:
+                driver.quit()
+                driver = initDriver()
+                GPAct("更换浏览器")
+            url = doctorUrlList(data[i][3],driver)
+            time.sleep(5)#等待数据处理
             for ii in url:
-                if erroract % 3 == 2:
-                    GPError("200", "被发现了，暂停3分钟")
-                    time.sleep(180)
                 try:
-                    doctorUrl = doctorList(ii, idnum)
+                    doctorUrl = doctorList(ii,driver)
+                    time.sleep(5)  # 等待数据处理
                     erroract = 0
                 except:
                     with open("./data/ErrorALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as fff:
@@ -94,9 +132,7 @@ def savedoctorList(startnum, endnum, idnum):
                         errornum += 1
                         erroract += 1
                         GPError("999", traceback.format_exc())
-                        idnum = idnum % 10 + 9  # 换代理
                     continue
-                time.sleep(10 + erroract)
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
                                  '城市名': data[i][1],
@@ -106,7 +142,7 @@ def savedoctorList(startnum, endnum, idnum):
                                  }
                     sum += 1
                     writer.writerow(finalInfo)
-                GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
+                #GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "|写入量" + str(sum))
 
 
 # 用于saveinfo函数的数据读取计数
@@ -137,9 +173,9 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
     # 可视化
 
     with logw.mode('医生评论数') as logger:
-        conTag = logger.scalar('线程[' + str(idnum) + "]评论抓取" + str(startnum)+"-"+str(endnum))
+        conTag = logger.scalar('线程[' + str(idnum) + "]评论抓取" + str(startnum) + "-" + str(endnum))
     with logw.mode('抓取错误数') as logger:
-        errorTag = logger.scalar('线程[' + str(idnum) + "]评论抓取" + str(startnum)+"-"+str(endnum))
+        errorTag = logger.scalar('线程[' + str(idnum) + "]评论抓取" + str(startnum) + "-" + str(endnum))
 
     # 读取文件
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
@@ -148,23 +184,19 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
     with open("./data/" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key2)
         writer.writeheader()
-        driver = initDriver(idnum)
-        try:
-            if str(driver) == "1":
-                sumCPU += 1
-        except:
-            pass
+        driver = initDriver()
         for i in range(startnum, endnum + 1):
             sumOnly = 0  # 单医生评论计数器
             if i % 20 == 19:
                 driver.quit()
-                driver = initDriver(sumCPU)
+                driver = initDriver()
                 GPAct("更换浏览器")
             if erroract % 3 == 2:
                 GPError("200", "被发现了，暂停3分钟")
                 time.sleep(180)
             try:
                 info = doctorinfo(data[i][3], driver=driver)  # 导入医生链接
+                time.sleep(15)  # 等待数据处理
                 erroract = 0
             except:
                 with open("./data/Error" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as fff:
@@ -274,7 +306,7 @@ def Threads_doctorUrl(startnum, endnum):
         i.start()
         GPInfo("线程" + str(ii) + "启动完毕！")
         ii += 1
-
+        time.sleep(15)  # 错峰启动
 
 def Threads_save(startnum, endnum):
     threads = []
@@ -313,17 +345,16 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
-
+'''
 # 信息表
 endnum = input("输入结束位置_")
 print(timeinfo())
 Threads_save(1, int(endnum))
 
+
+savedoctorList(1, 1, 1)
 '''
-savedoctorList(1, 2514, 1)
-'''
-'''
-#医生表
+
+# 医生表
 endnum = input("输入结束位置_")
 Threads_doctorUrl(1, int(endnum) + 1)
-'''
