@@ -15,23 +15,6 @@ import traceback  # 错误处理
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}  # 全局UA
 
 key = ['省份名', '城市名', '医院名', '医生信息', '主观疗效', '态度', '评价内容', '花费']  # 数据表头
-proxy_S = 1  # 1默认代理 0默认禁止代理
-proxynum=19#代理循环数量 填最大代理量即可
-
-def initDriver(idnum):
-    try:
-        firefoxOpt = Options()  # 载入配置
-        firefoxOpt.add_argument("--headless")
-        if proxy_S == 1:  # Debug模式下禁用代理
-            GPInfo("代理地址为：" + str(proxy[int(int(idnum) % proxynum)]))#只用20个代理IP
-            firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % proxynum)])  # 使用代理
-        GPAct("启动浏览器")
-        driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
-        GPInfo("浏览器启动成功")
-        return driver
-    except:
-        GPError("001", "浏览器启动失败")
-        return 1
 
 
 def pUrl(url):  # 查找省份链接
@@ -78,18 +61,22 @@ def hUrl(url):  # 通过城市链接查找医院链接
     hList = []
     hUrl = []
     for i in find_url:
-        hUrl.append('https://www.haodf.com/' + str(i.get("href"))[2:])
+        hUrl.append('https://www.haodf.com/' + str(i.get("href")[1:]))
         hList.append(i.getText())
     info = hList, hUrl  # 医院名 链接
     return info  # 返回医院名和链接列表
 
 
-def doctorUrlList(url):  # 获取推荐医生列表页面
+
+def doctorUrlList(url,driver):  # 获取推荐医生列表页面
     # 医院页面下跳转至医生推荐
     url = url.split("/")[-1:]
     url = 'https://www.haodf.com/tuijian/yiyuan/' + url[0]
-    req = request.Request(url, headers=headers)
-    html = urlopen(req, timeout=5)  # 防假死
+    driver.get(url)
+    driver.set_page_load_timeout(5)  # 等待JS加载时间
+    GPAct("正在等待系统返回数据")
+    html = driver.page_source
+
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
     find_content = html_BSObj.find(attrs={"class": "box_a-introList box_a-introList01"})  # 定位目录
     # 定位“更多”
@@ -108,18 +95,13 @@ def doctorUrlList(url):  # 获取推荐医生列表页面
     return more_url
 
 
-def doctorList(url,idnum):  # 从更多中获取医生链接列表
-    #添加代理
-    if proxy_S == 1:
-        httpproxy_handler = request.ProxyHandler({"http": 'http://'+proxy[int(int(idnum) % proxynum)]})
-        opener = request.build_opener(httpproxy_handler)
-        req = request.Request(url, headers=headers)
-        html=opener.open(req,timeout=10).read()
+def doctorList(url,driver):  # 从更多中获取医生链接列表
+    driver.get(url)
+    driver.set_page_load_timeout(5)  # 等待JS加载时间
+    GPAct("正在等待系统返回数据")
+    page = driver.page_source
 
-    else:
-        req = request.Request(url, headers=headers)
-        html = urlopen(req, timeout=10)
-    html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
+    html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
     find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
     find_a = BeautifulSoup(str(find_List), "lxml")
     find_a = find_a.findAll(attrs={"class": "blue"})
@@ -238,10 +220,11 @@ def doctorinfo(url, driver):  # 查找评价
         if "liang" in str(i):
             starnum += 1
 
-    '''
+
     # 咨询情况
     zixunUrl = "https:" + strClean(
         xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
+    '''
     driver.get(zixunUrl)
     driver.set_page_load_timeout(5)# 等待JS加载时间
     page2 = driver.page_source  # 获取当前页面源码
@@ -264,7 +247,7 @@ def doctorinfo(url, driver):  # 查找评价
         tempList.append(strClean(temp2.xpath('//td[5]/text()[1]')[0].replace("(", '')) + "/" + strClean(temp2.xpath('//tr/td[5]/font/text()')))  # 对话数
         zixuninfo.append(tempList)
     '''
-    zixuninfo=['暂不抓取']
+    zixuninfo=[zixunUrl]
 
     # 最后-评论抓取
     pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
@@ -338,25 +321,27 @@ def doctorinfo(url, driver):  # 查找评价
 def a():
     def debug():
         global proxy_S
-        proxy_S = 0  # 停止代理
+        proxy_S = 1  # 代理
         '''
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
 
-
+        
 
         url='https://www.haodf.com/yiyuan/beijing/list.htm'
         cityUrlLoad(url)
+        
         url='https://www.haodf.com/yiyuan/beijing/chaoyang/list.htm'
         hUrl(url)
-       
-        url = 'https://www.haodf.com/hospital/DE4raCNSz6OmG3OUNZWCWNv0.htm'
-        print(doctorUrlList(url))
+        '''
+        for i in range(1,20):
+            url = 'https://www.haodf.com/hospital/DE4raCNSz6OmG3OUNZWCWNv0.htm'
+            print(doctorUrlList(url))
         
         '''
         url='http://www.haodf.com/tuijian/DE4raCNSz6OmG3OUNZWCWNv0/daizhuangpaozhen.htm'
-        print(doctorList(url,1))
-        '''
+        print(doctorList(url))
+        
         url = 'https://www.haodf.com/doctor/DE4rO-XCoLUmy1568JOrYZEIRi.htm'
         print("Start")
         init_driver = initDriver(0)  # 初始化浏览器对象
@@ -364,21 +349,16 @@ def a():
         print(pp)
 
         init_driver.quit()  # 退出浏览器
-
         '''
+
     debug()
 
 
+
+
+
+
 #a() #开启Debug模式
-
-# idnum=ID计数器 用于代理、UA计数
-if proxy_S == 1:
-    try:
-        # proxy = getIP()  # 获取代理
-        proxy = getLongIpFile()
-    except:
-        GPError(000, "代理获取失败请重试")
-
 '''
     def start():
         error1 = 1
