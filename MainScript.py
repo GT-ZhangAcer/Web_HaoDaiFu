@@ -76,7 +76,7 @@ def doctorUrlList(url,driver):  # 获取推荐医生列表页面
     url = 'https://www.haodf.com/tuijian/yiyuan/' + url[0]
     driver.get(url)
     driver.set_page_load_timeout(5)  # 等待JS加载时间
-    GPAct("正在等待系统返回数据")
+    #GPAct("正在等待系统返回数据")
     html = driver.page_source
 
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
@@ -100,7 +100,7 @@ def doctorUrlList(url,driver):  # 获取推荐医生列表页面
 def doctorList(url,driver):  # 从更多中获取医生链接列表
     driver.get(url)
     driver.set_page_load_timeout(5)  # 等待JS加载时间
-    GPAct("正在等待系统返回数据")
+    #GPAct("正在等待系统返回数据")
     page = driver.page_source
 
     html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
