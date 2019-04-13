@@ -11,7 +11,7 @@ key2 = ['医生ID', '省份名', '城市名', '医院名', '医生姓名',  # 1+
         '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级',  # 6
         '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
         '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容', '就诊理由', '挂号途径', '当前情况',  # 8
-        '花费', '投票', '主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-33
+        '花费', '投票', '评论时间','主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-34
 # 记录可视化日志
 logw = LogWriter("c:/log/main_log", sync_cycle=5)
 with logw.mode('抓取总数') as logger:
@@ -170,14 +170,14 @@ def savedoctorList(startnum, endnum, idnum):
 def readerData2():
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)))
+        GPInfo("总计数量为：" + str(len(data)-1))
     return str(len(data))
 
 
 def readerData1():
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)))
+        GPInfo("总计数量为：" + str(len(data)-1))
     return str(len(data))
 
 
@@ -230,9 +230,10 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                     Ewriter = csv.DictWriter(fff, key1)
                     Ewriter.writerow(finalInfo)
                     errornum += 1
-                    errorTag.add_record(i, 0)  # 输入可视化数据
+                    errorTag.add_record(i, errornum)  # 输入可视化数据
                     sumCPU += 1
                     proxy.error()
+                    GPError("999", traceback.format_exc())
                 continue
             try:
                 for ii in range(len(info)):
@@ -278,10 +279,11 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                         '花费': info[ii][28],
 
                         '投票': info[ii][29],
-                        '主页浏览量': info[ii][30],
-                        '咨询信息列表': info[ii][31],
-                        '照片': info[ii][32],
-                        '推荐热度': info[ii][33]
+                        '评论时间': info[ii][30],
+                        '主页浏览量': info[ii][31],
+                        '咨询信息列表': info[ii][32],
+                        '照片': info[ii][33],
+                        '推荐热度': info[ii][34]
 
                     }
 
@@ -347,8 +349,6 @@ def Threads_save(startnum, endnum):
     for i in range(1, int(num) + 1):
         if i == int(num):
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, endnum, sumCPU))
-
-
         else:
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, tempendnum, sumCPU))
         tempstartnum += lang
@@ -369,17 +369,18 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
-'''
+
 # 信息表
+starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
-print(timeinfo())
-Threads_save(1, int(endnum))
+Threads_save(starnum, int(endnum))
 
 
-savedoctorList(1, 1, 1)
 
 '''
+
 # 医生表
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_doctorUrl(starnum, int(endnum) + 1)
+'''

@@ -137,7 +137,7 @@ def doctorinfo(url, driver):  # 查找评价
 
     # 医生是否有照片
     if "n1.hdfimg.com/g2/M03/71/DC/yIYBAFw8OIyAQbw2AAAWC2" in str(strClean(xpathhtml.xpath(
-            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img')[0])):
+            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img'))):
         doctor_img = 0  # 没有照片
     else:
         doctor_img = 1  # 有照片
@@ -225,8 +225,12 @@ def doctorinfo(url, driver):  # 查找评价
 
 
     # 咨询情况
-    zixunUrl = "https:" + strClean(
-        xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
+
+    try:
+        zixunUrl = "https:" + strClean(
+            xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
+    except:
+        zixunUrl = "None"
     '''
     driver.get(zixunUrl)
     driver.set_page_load_timeout(5)# 等待JS加载时间
@@ -253,14 +257,19 @@ def doctorinfo(url, driver):  # 查找评价
     zixuninfo=[zixunUrl]
 
     # 最后-评论抓取
-    pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
-    driver.get(pageNumUrl)  # 进入详细评论页
-    driver.set_page_load_timeout(5)# 等待JS加载时间
-    page = driver.page_source  # 获取当前页面源码
-    xpathhtml = etree.HTML(page)
-    NowUrl = driver.current_url  # 获取浏览器当前Url
-    pagenum = strClean(xpathhtml.xpath('//td[@class="hdf_content"]/div/a[@class="p_text"]/text()')[0])[
-              1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
+    try:
+        pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
+        driver.get(pageNumUrl)  # 进入详细评论页
+        driver.set_page_load_timeout(5)  # 等待JS加载时间
+        page = driver.page_source  # 获取当前页面源码
+        xpathhtml = etree.HTML(page)
+        NowUrl = driver.current_url  # 获取浏览器当前Url
+        pagenum = strClean(xpathhtml.xpath('//td[@class="hdf_content"]/div/a[@class="p_text"]/text()')[0])[
+                  1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
+    except:
+        pagenum=2
+        NowUrl = driver.current_url
+
 
     def pinglun(pagenum):
         errorTime = 0  # 累了就多休息一下 每错一次就多休息1秒
@@ -296,6 +305,7 @@ def doctorinfo(url, driver):  # 查找评价
                     share3 = strClean(
                         html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[4]/text()'))  # 当前情况
                     money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
+                    sharetime=strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[3]/text()'))#评论时间
                     returninfo.append(
                         [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,
                          # 返回[名字 科室 职称 擅长 经历 5
@@ -304,7 +314,7 @@ def doctorinfo(url, driver):  # 查找评价
                          zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
                          tool, attitudeA, attitudeB, attitudeC, thank, share1, share2, share3,
                          # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 其它分享x3 8
-                         money, toupiao, hotnumber, zixuninfo, doctor_img,doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
+                         money, toupiao,sharetime, hotnumber, zixuninfo, doctor_img,doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
                     errorTime = 0  # 能走两步了就好好干活！
             except:
                 GPError(203, "好像被发现了 休息一下")
