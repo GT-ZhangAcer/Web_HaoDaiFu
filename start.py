@@ -170,14 +170,14 @@ def savedoctorList(startnum, endnum, idnum):
 def readerData2():
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)))
+        GPInfo("总计数量为：" + str(len(data)-1))
     return str(len(data))
 
 
 def readerData1():
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)))
+        GPInfo("总计数量为：" + str(len(data)-1))
     return str(len(data))
 
 
@@ -230,9 +230,10 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                     Ewriter = csv.DictWriter(fff, key1)
                     Ewriter.writerow(finalInfo)
                     errornum += 1
-                    errorTag.add_record(i, 0)  # 输入可视化数据
+                    errorTag.add_record(i, errornum)  # 输入可视化数据
                     sumCPU += 1
                     proxy.error()
+                    GPError("999", traceback.format_exc())
                 continue
             try:
                 for ii in range(len(info)):
@@ -348,8 +349,6 @@ def Threads_save(startnum, endnum):
     for i in range(1, int(num) + 1):
         if i == int(num):
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, endnum, sumCPU))
-
-
         else:
             cpu = threading.Thread(target=saveinfo, args=(tempstartnum, tempendnum, sumCPU))
         tempstartnum += lang

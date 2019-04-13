@@ -137,7 +137,7 @@ def doctorinfo(url, driver):  # 查找评价
 
     # 医生是否有照片
     if "n1.hdfimg.com/g2/M03/71/DC/yIYBAFw8OIyAQbw2AAAWC2" in str(strClean(xpathhtml.xpath(
-            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img')[0])):
+            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img'))):
         doctor_img = 0  # 没有照片
     else:
         doctor_img = 1  # 有照片
@@ -225,8 +225,12 @@ def doctorinfo(url, driver):  # 查找评价
 
 
     # 咨询情况
-    zixunUrl = "https:" + strClean(
-        xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
+
+    try:
+        zixunUrl = "https:" + strClean(
+            xpathhtml.xpath('//*[@id="bp_newthreads"]/div/div[2]/div/div[2]/a/@href')[0])  # 咨询链接获取
+    except:
+        zixunUrl = "None"
     '''
     driver.get(zixunUrl)
     driver.set_page_load_timeout(5)# 等待JS加载时间
@@ -253,14 +257,19 @@ def doctorinfo(url, driver):  # 查找评价
     zixuninfo=[zixunUrl]
 
     # 最后-评论抓取
-    pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
-    driver.get(pageNumUrl)  # 进入详细评论页
-    driver.set_page_load_timeout(5)# 等待JS加载时间
-    page = driver.page_source  # 获取当前页面源码
-    xpathhtml = etree.HTML(page)
-    NowUrl = driver.current_url  # 获取浏览器当前Url
-    pagenum = strClean(xpathhtml.xpath('//td[@class="hdf_content"]/div/a[@class="p_text"]/text()')[0])[
-              1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
+    try:
+        pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
+        driver.get(pageNumUrl)  # 进入详细评论页
+        driver.set_page_load_timeout(5)  # 等待JS加载时间
+        page = driver.page_source  # 获取当前页面源码
+        xpathhtml = etree.HTML(page)
+        NowUrl = driver.current_url  # 获取浏览器当前Url
+        pagenum = strClean(xpathhtml.xpath('//td[@class="hdf_content"]/div/a[@class="p_text"]/text()')[0])[
+                  1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
+    except:
+        pagenum=2
+        NowUrl = driver.current_url
+
 
     def pinglun(pagenum):
         errorTime = 0  # 累了就多休息一下 每错一次就多休息1秒
