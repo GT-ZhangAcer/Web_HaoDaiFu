@@ -1,6 +1,7 @@
 from MainScript import *
 import threading
 from visualdl import LogWriter
+from IP import proxyc
 
 key0 = ['省份名', '城市名', '医院名', '医院Url', ]  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生Url', '医生ID']  # 数据表头 0-3
@@ -22,37 +23,46 @@ with logw.mode('错误总数') as logger:
 
 # 浏览器设定
 proxy_S = 1  # 1默认代理 0默认禁止代理
-proxynum = 280  # 代理循环数量 填最大代理量即可
+proxynum = 500  # 代理循环数量 填最大代理量即可
 idnum = 0  # 设备指纹
 
 # idnum=ID计数器 用于代理、UA计数
+
 if proxy_S == 1:
     try:
         # proxy = getIP()  # 获取代理
-        proxy = getLongIpFile()
+        # proxy = getLongIpFile()
+        proxy=proxyc(proxynum=proxynum)#实例化代理获取器
+
     except:
+
         GPError(000, "代理获取失败请重试")
 
 
-def initDriver():
+def initDriver(proxyinfo):#传入代理地址
     firefoxOpt = Options()  # 载入配置
     global idnum
     firefoxOpt.add_argument("--headless")
     while (1):
         try:
             if proxy_S == 1:  # Debug模式下禁用代理
-                GPInfo("代理地址为：" + str(proxy[int(int(idnum) % proxynum)]))
-                firefoxOpt.add_argument('--proxy-server=http://' + proxy[int(int(idnum) % proxynum)])  # 使用代理
+
+                GPInfo("代理地址为：" + str(proxyinfo))
+                firefoxOpt.add_argument('--proxy-server=http://' + str(proxyinfo))  # 使用代理
             GPAct("启动浏览器")
             driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
             GPInfo("浏览器启动成功")
-            GPInfo("当前指纹为：" + str(idnum))
+            #GPInfo("当前指纹为：" + str(idnum))
             idnum += 1
             return driver
         except:
+            GPError("999", traceback.format_exc())
             GPError("001", "浏览器启动失败")
             idnum += 1
             continue
+
+
+
 
 
 # 抓取主循环
@@ -107,18 +117,26 @@ def savedoctorList(startnum, endnum, idnum):
     with open("./data/ALLDoctorUrl" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key1)
         writer.writeheader()
-        driver = initDriver()
+        driver = initDriver(proxy.findapi())
         for i in range(startnum, int(endnum) + 1):
-            if sum % 30 == 29:
+            if sum % 10 == 9:
                 driver.quit()
-                driver = initDriver()
+                driver = initDriver(proxy.findProxy())
                 GPAct("更换浏览器")
-            url = doctorUrlList(data[i][3], driver)
-            time.sleep(3)  # 等待数据处理
+            try:
+                url = doctorUrlList(data[i][3], driver)
+                time.sleep(1)  # 等待数据处理
+            except:
+                continue
             for ii in url:
                 try:
+                    if sum % 10 == 9:
+                        driver.quit()
+                        driver = initDriver(proxy.findProxy())
+                        GPAct("更换浏览器")
+                    url = doctorUrlList(data[i][3], driver)
                     doctorUrl = doctorList(ii, driver)
-                    time.sleep(3)  # 等待数据处理
+                    time.sleep(1)  # 等待数据处理
                     erroract = 0
                 except:
                     with open("./data/ErrorALLDoctorUrl.csv", 'w', newline='', encoding='utf-8')as fff:
@@ -132,7 +150,8 @@ def savedoctorList(startnum, endnum, idnum):
                         Ewriter.writeheader()
                         errornum += 1
                         erroract += 1
-                        GPError("999", traceback.format_exc())
+                        proxy.error()
+                        #GPError("999", traceback.format_exc())
                     continue
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
@@ -144,7 +163,7 @@ def savedoctorList(startnum, endnum, idnum):
                     sum += 1
                     writer.writerow(finalInfo)
             GPInfo("当前爬取医院进度[共" + str(len(data)) + "]：" + str(i) + "|错误数：" + str(errornum) + "范围" + str(
-                    startnum) + "-" + str(endnum))
+                startnum) + "-" + str(endnum))
 
 
 # 用于saveinfo函数的数据读取计数
@@ -186,12 +205,12 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
     with open("./data/" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key2)
         writer.writeheader()
-        driver = initDriver()
+        driver = initDriver(proxy.findProxy())
         for i in range(startnum, endnum + 1):
             sumOnly = 0  # 单医生评论计数器
             if i % 20 == 19:
                 driver.quit()
-                driver = initDriver()
+                driver = initDriver(proxy.findProxy())
                 GPAct("更换浏览器")
             if erroract % 3 == 2:
                 GPError("200", "被发现了，暂停3分钟")
@@ -213,6 +232,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
                     errornum += 1
                     errorTag.add_record(i, 0)  # 输入可视化数据
                     sumCPU += 1
+                    proxy.error()
                 continue
             try:
                 for ii in range(len(info)):
@@ -274,6 +294,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
             except:
                 errornum += 1
                 GPError(202, "数据不完整")
+                proxy.error()
                 continue
             '''
             if i % 5 == 0:
@@ -356,8 +377,9 @@ Threads_save(1, int(endnum))
 
 
 savedoctorList(1, 1, 1)
-'''
 
+'''
 # 医生表
+starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
-Threads_doctorUrl(1, int(endnum) + 1)
+Threads_doctorUrl(starnum, int(endnum) + 1)
