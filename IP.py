@@ -83,7 +83,6 @@ class proxyc:
         if self.i == self.proxynum - 20:
             self.findapi()
             self.i=0
-        print(self.i)
         return proxyinfo
 
     #出错之后弹出下一个代理

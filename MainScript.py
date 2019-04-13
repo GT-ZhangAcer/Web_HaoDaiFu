@@ -296,6 +296,7 @@ def doctorinfo(url, driver):  # 查找评价
                     share3 = strClean(
                         html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[4]/text()'))  # 当前情况
                     money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
+                    sharetime=strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[3]/text()'))#评论时间
                     returninfo.append(
                         [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,
                          # 返回[名字 科室 职称 擅长 经历 5
@@ -304,7 +305,7 @@ def doctorinfo(url, driver):  # 查找评价
                          zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
                          tool, attitudeA, attitudeB, attitudeC, thank, share1, share2, share3,
                          # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 其它分享x3 8
-                         money, toupiao, hotnumber, zixuninfo, doctor_img,doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
+                         money, toupiao,sharetime, hotnumber, zixuninfo, doctor_img,doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
                     errorTime = 0  # 能走两步了就好好干活！
             except:
                 GPError(203, "好像被发现了 休息一下")
