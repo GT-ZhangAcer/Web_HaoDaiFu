@@ -1,7 +1,7 @@
 from MainScript import *
 import threading
 from visualdl import LogWriter
-from IP import proxyc
+from proxy_gt.proxy.IP import proxyc  # 引入代理包
 
 key0 = ['省份名', '城市名', '医院名', '医院Url', ]  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生Url', '医生ID']  # 数据表头 0-3
@@ -11,7 +11,7 @@ key2 = ['医生ID', '省份名', '城市名', '医院名', '医生姓名',  # 1+
         '临床经验统计', '治疗人数', '随访人数', '感谢信', '礼物数量', '服务星级',  # 6
         '值班', '出诊提示', '患者姓名', '症状', '看病目的',  # 5
         '治疗手段', '主观疗效', '感谢信&看病经验', '态度', '评价内容', '就诊理由', '挂号途径', '当前情况',  # 8
-        '花费', '投票', '评论时间','主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-34
+        '花费', '投票', '评论时间', '主页浏览量', '咨询信息列表', '照片', '推荐热度']  # 5 数据表头 0-4-34
 # 记录可视化日志
 logw = LogWriter("c:/log/main_log", sync_cycle=5)
 with logw.mode('抓取总数') as logger:
@@ -32,14 +32,14 @@ if proxy_S == 1:
     try:
         # proxy = getIP()  # 获取代理
         # proxy = getLongIpFile()
-        proxy=proxyc(proxynum=proxynum)#实例化代理获取器
+        proxy = proxyc(proxynum=proxynum)  # 实例化代理获取器
 
     except:
 
         GPError(000, "代理获取失败请重试")
 
 
-def initDriver(proxyinfo):#传入代理地址
+def initDriver(proxyinfo):  # 传入代理地址
     firefoxOpt = Options()  # 载入配置
     global idnum
     firefoxOpt.add_argument("--headless")
@@ -52,7 +52,7 @@ def initDriver(proxyinfo):#传入代理地址
             GPAct("启动浏览器")
             driver = webdriver.Firefox(workPath() + 'exe/core/', firefox_options=firefoxOpt)
             GPInfo("浏览器启动成功")
-            #GPInfo("当前指纹为：" + str(idnum))
+            # GPInfo("当前指纹为：" + str(idnum))
             idnum += 1
             return driver
         except:
@@ -60,9 +60,6 @@ def initDriver(proxyinfo):#传入代理地址
             GPError("001", "浏览器启动失败")
             idnum += 1
             continue
-
-
-
 
 
 # 抓取主循环
@@ -151,7 +148,7 @@ def savedoctorList(startnum, endnum, idnum):
                         errornum += 1
                         erroract += 1
                         proxy.error()
-                        #GPError("999", traceback.format_exc())
+                        # GPError("999", traceback.format_exc())
                     continue
                 for iii in doctorUrl:
                     finalInfo = {'省份名': data[i][0],
@@ -170,14 +167,14 @@ def savedoctorList(startnum, endnum, idnum):
 def readerData2():
     with open("./data/ALLDoctorUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)-1))
+        GPInfo("总计数量为：" + str(len(data) - 1))
     return str(len(data))
 
 
 def readerData1():
     with open("./data/ALLHostipalUrl.csv", newline='', encoding='utf-8') as f:
         data = list(csv.reader(f))
-        GPInfo("总计数量为：" + str(len(data)-1))
+        GPInfo("总计数量为：" + str(len(data) - 1))
     return str(len(data))
 
 
@@ -374,8 +371,6 @@ def Threads_save(startnum, endnum):
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_save(starnum, int(endnum))
-
-
 
 '''
 
