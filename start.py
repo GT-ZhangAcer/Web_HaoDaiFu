@@ -2,6 +2,7 @@ from MainScript import *
 import threading
 from visualdl import LogWriter
 from proxy_gt.proxy.IP import proxyc  # 引入代理包
+import csv
 
 key0 = ['省份名', '城市名', '医院名', '医院Url', ]  # 数据表头 0-3
 key1 = ['省份名', '城市名', '医院名', '医生Url', '医生ID']  # 数据表头 0-3
@@ -366,16 +367,17 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
-
+'''
 # 信息表
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_save(starnum, int(endnum))
 
-'''
 
+'''
 # 医生表
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_doctorUrl(starnum, int(endnum) + 1)
-'''
+
+

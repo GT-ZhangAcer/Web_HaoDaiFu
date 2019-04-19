@@ -7,8 +7,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from Tool import *
 from lxml import etree
-from IP import *
-import csv
 
 import traceback  # 错误处理
 
@@ -69,14 +67,13 @@ def hUrl(url):  # 通过城市链接查找医院链接
     return info  # 返回医院名和链接列表
 
 
-
-def doctorUrlList(url,driver):  # 获取推荐医生列表页面
+def doctorUrlList(url, driver):  # 获取推荐医生列表页面
     # 医院页面下跳转至医生推荐
     url = url.split("/")[-1:]
     url = 'https://www.haodf.com/tuijian/yiyuan/' + url[0]
     driver.get(url)
     driver.set_page_load_timeout(5)  # 等待JS加载时间
-    #GPAct("正在等待系统返回数据")
+    # GPAct("正在等待系统返回数据")
     html = driver.page_source
 
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
@@ -92,31 +89,48 @@ def doctorUrlList(url,driver):  # 获取推荐医生列表页面
     print("医生链接", url)
     print("更多", find_more)
     print("返回：",more_url)'''
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(Keys.CONTROL).perform()#关闭当前页面
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(Keys.CONTROL).perform()  # 关闭当前页面
     # 返回 更多 的链接
     return more_url
 
 
-def doctorList(url,driver):  # 从更多中获取医生链接列表
+def doctorList(url, driver):  # 从更多中获取医生链接列表
     driver.get(url)
-    driver.set_page_load_timeout(5)  # 等待JS加载时间
-    #GPAct("正在等待系统返回数据")
-    page = driver.page_source
-
-    html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
-    find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
-    find_a = BeautifulSoup(str(find_List), "lxml")
-    find_a = find_a.findAll(attrs={"class": "blue"})
+    driver.set_page_load_timeout(5)
+    # 定义返回列表
     doctorList = []
-    for i in find_a:
-        doctorList.append("https://" + str(i.get("href"))[2:])
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(Keys.CONTROL).perform()#关闭当前页面
+    while (1):
+        # 判断是否有第二页
+        # GPAct("正在等待系统返回数据")
+        page = driver.page_source
+        xpathhtml = etree.HTML(page)
+        try:
+            nextUrl = str(strClean(xpathhtml.xpath(
+                '//*[@id="gray"]/div[5]/table[3]/tbody/tr/td/table/tbody/tr/td[1]/table[2]/tbody/tr[3]/td[2]/table/tbody/tr/td/div/div/table/tbody/tr[12]/td/div/a[3]/@href')[
+                                       0]))
+        except:
+            nextUrl = str(strClean(xpathhtml.xpath(
+                '//*[@id="gray"]/div[5]/table[3]/tbody/tr/td/table/tbody/tr/td[1]/table[2]/tbody/tr[3]/td[2]/table/tbody/tr/td/div/div/table/tbody/tr[12]/td/div/a[3]/@href')))
+        # 抓取信息
+        html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
+        find_List = html_BSObj.findAll(attrs={"class": "yy_jb_df3"})
+        find_a = BeautifulSoup(str(find_List), "lxml")
+        find_a = find_a.findAll(attrs={"class": "blue"})
+
+        for i in find_a:
+            doctorList.append("https://" + str(i.get("href"))[2:])
+        if "id" in str(nextUrl):
+            driver.find_element_by_xpath(
+                '//*[@id="gray"]/div[5]/table[3]/tbody/tr/td/table/tbody/tr/td[1]/table[2]/tbody/tr[3]/td[2]/table/tbody/tr/td/div/div/table/tbody/tr[12]/td/div/a[3]').click()
+        else:
+            break
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(Keys.CONTROL).perform()  # 关闭当前页面
     return doctorList  # 返回医生详情页链接
 
 
 def doctorinfo(url, driver):  # 查找评价
     driver.get(url)
-    driver.set_page_load_timeout(5)# 等待JS加载时间
+    driver.set_page_load_timeout(5)  # 等待JS加载时间
     GPAct("正在等待系统返回数据")
     page = driver.page_source
     html_BSObj = BeautifulSoup(page, "lxml")  # 链接对象
@@ -132,19 +146,20 @@ def doctorinfo(url, driver):  # 查找评价
     doctor_shanchang = strClean(xpathhtml.xpath('//*[@id="truncate_DoctorSpecialize"]/text()'))  # 擅长
     # 职业经历
     doctor_Exp = strClean(xpathhtml.xpath('//*[@id="truncate"]/text()'))
-    if len(doctor_Exp)<5:
-        doctor_Exp = strClean(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[5]/td[3]/text()'))
+    if len(doctor_Exp) < 5:
+        doctor_Exp = strClean(
+            xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[5]/td[3]/text()'))
 
     # 医生是否有照片
     if "n1.hdfimg.com/g2/M03/71/DC/yIYBAFw8OIyAQbw2AAAWC2" in str(strClean(xpathhtml.xpath(
-            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img'))):
+            '//*[@id="bp_doctor_about"]/div/div[2]/div/table[1]/tbody/tr[1]/td/div[1]/table/tbody/tr/td/img/@src'))):
+
         doctor_img = 0  # 没有照片
     else:
         doctor_img = 1  # 有照片
 
-    #医生推荐热度
+    # 医生推荐热度
     doctorHot = strClean(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[1]/p[1]/text()'))
-
 
     hotpoint1 = str(xpathhtml.xpath('//*[@id="bp_doctor_about"]/div/div[2]/div/div[2]/div/div[2]/p[1]/span[1]/text()'))[
                 -5:-2]  # 治疗满意度
@@ -223,7 +238,6 @@ def doctorinfo(url, driver):  # 查找评价
         if "liang" in str(i):
             starnum += 1
 
-
     # 咨询情况
 
     try:
@@ -254,11 +268,12 @@ def doctorinfo(url, driver):  # 查找评价
         tempList.append(strClean(temp2.xpath('//td[5]/text()[1]')[0].replace("(", '')) + "/" + strClean(temp2.xpath('//tr/td[5]/font/text()')))  # 对话数
         zixuninfo.append(tempList)
     '''
-    zixuninfo=[zixunUrl]
+    zixuninfo = [zixunUrl]
 
     # 最后-评论抓取
     try:
         pageNumUrl = "https:" + xpathhtml.xpath('//*[@class="lbjg"]/tbody/tr/td/a/@href')[0]  # 获取评论详细页面
+        time.sleep(5)
         driver.get(pageNumUrl)  # 进入详细评论页
         driver.set_page_load_timeout(5)  # 等待JS加载时间
         page = driver.page_source  # 获取当前页面源码
@@ -267,9 +282,8 @@ def doctorinfo(url, driver):  # 查找评价
         pagenum = strClean(xpathhtml.xpath('//td[@class="hdf_content"]/div/a[@class="p_text"]/text()')[0])[
                   1:-1]  # 没用正则表达式就算好的了将就看吧 嘿嘿嘿（懒） 总评论页数
     except:
-        pagenum=2
+        pagenum = 2
         NowUrl = driver.current_url
-
 
     def pinglun(pagenum):
         errorTime = 0  # 累了就多休息一下 每错一次就多休息1秒
@@ -305,7 +319,7 @@ def doctorinfo(url, driver):  # 查找评价
                     share3 = strClean(
                         html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[4]/text()'))  # 当前情况
                     money = strClean(html.xpath('//table/tbody/tr[3]/td[2]/table/tbody/tr[3]/td/div[5]/text()'))  # 治疗花费
-                    sharetime=strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[3]/text()'))#评论时间
+                    sharetime = strClean(html.xpath('//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[3]/text()'))  # 评论时间
                     returninfo.append(
                         [doctor_name, doctor_keshi, doctor_zhicheng, doctor_shanchang, doctor_Exp,
                          # 返回[名字 科室 职称 擅长 经历 5
@@ -314,7 +328,8 @@ def doctorinfo(url, driver):  # 查找评价
                          zhibanTime, tips, name, cood, think,  # 值班 出诊提示 患者姓名 症状 看病目的 5
                          tool, attitudeA, attitudeB, attitudeC, thank, share1, share2, share3,
                          # 治疗手段 主观疗效 态度 感谢信&看病经验 评价内容 其它分享x3 8
-                         money, toupiao,sharetime, hotnumber, zixuninfo, doctor_img,doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
+                         money, toupiao, sharetime, hotnumber, zixuninfo, doctor_img,
+                         doctorHot])  # 花费 投票  主页浏览量 咨询 是否有照片]为每一组的数据  4-32
                     errorTime = 0  # 能走两步了就好好干活！
             except:
                 GPError(203, "好像被发现了 休息一下")
@@ -331,33 +346,36 @@ def doctorinfo(url, driver):  # 查找评价
 
 # if __name__ == '__main__':
 
+
 def a():
     def debug():
-        global proxy_S
-        proxy_S = 1  # 代理
+        GPAct("启动浏览器")
+        driver = webdriver.Firefox(workPath() + 'exe/core/')
+        GPInfo("浏览器启动成功")
+
         '''
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
 
-        
+
 
         url='https://www.haodf.com/yiyuan/beijing/list.htm'
         cityUrlLoad(url)
-        
-        url='https://www.haodf.com/yiyuan/beijing/chaoyang/list.htm'
-        hUrl(url)
         '''
-        for i in range(1,20):
-            url = 'https://www.haodf.com/hospital/DE4raCNSz6OmG3OUNZWCWNv0.htm'
-            print(doctorUrlList(url))
-        
+        url='https://www.haodf.com/yiyuan/beijing/list.htm?category=2'
+        print(hUrl(url))
+
         '''
-        url='http://www.haodf.com/tuijian/DE4raCNSz6OmG3OUNZWCWNv0/daizhuangpaozhen.htm'
-        print(doctorList(url))
+        url = 'https://www.haodf.com/tuijian/jibing_jiazhuangpangxianzengsheng_72.htm'
+        print(doctorList(url, driver))
+
         
+        url = 'https://www.haodf.com/doctor/DE4r0BCkuHzdFg0Jr7vRDydDzVOlL.htm'
+        info=doctorinfo(url, driver)
+        print(info)
         url = 'https://www.haodf.com/doctor/DE4rO-XCoLUmy1568JOrYZEIRi.htm'
         print("Start")
-        init_driver = initDriver(0)  # 初始化浏览器对象
+          # 初始化浏览器对象
         pp = doctorinfo(url, init_driver)
         print(pp)
 
@@ -367,11 +385,8 @@ def a():
     debug()
 
 
+a()  # 开启Debug模式
 
-
-
-
-#a() #开启Debug模式
 '''
     def start():
         error1 = 1
