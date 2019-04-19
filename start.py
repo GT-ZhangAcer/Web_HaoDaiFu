@@ -367,7 +367,7 @@ def Threads_save(startnum, endnum):
 """
 运行区
 """
-'''
+
 # 信息表
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
@@ -379,5 +379,5 @@ Threads_save(starnum, int(endnum))
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_doctorUrl(starnum, int(endnum) + 1)
-
+'''
 
