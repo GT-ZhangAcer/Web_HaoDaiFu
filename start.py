@@ -33,10 +33,9 @@ if proxy_S == 1:
     try:
         # proxy = getIP()  # 获取代理
         # proxy = getLongIpFile()
-        proxy = proxyc(proxynum=proxynum)  # 实例化代理获取器
+        proxy = proxyc(proxynum=proxynum,key="APDSDFTYXDSQRLKWUVITYUQR")  # 实例化代理获取器
 
     except:
-
         GPError(000, "代理获取失败请重试")
 
 
