@@ -1,7 +1,7 @@
 from MainScript import *
 import threading
 from visualdl import LogWriter
-from proxy_gt.proxy.IP import proxyc  # 引入代理包
+from proxy.proxy.IP import proxyc  # 引入代理包
 import csv
 
 key0 = ['省份名', '城市名', '医院名', '医院Url', ]  # 数据表头 0-3
