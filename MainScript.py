@@ -44,6 +44,7 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
     cityList = []
     cityUrl = []
     for i in find_url:
+        # !!!'?category=2'为只抓中医医院的列表
         cityUrl.append('https://' + str(i.get("href"))[2:]+'list.htm?category=2')
         cityList.append(i.getText())
     info = cityList, cityUrl  # 城市名 链接
@@ -52,7 +53,7 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
 
 
 def hUrl(url):  # 通过城市链接查找医院链接
-    # !!!'?category=2'为只抓中医医院的列表
+
     req = request.Request(url, headers=headers)
     html = urlopen(req, timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
