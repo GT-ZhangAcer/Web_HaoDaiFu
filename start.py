@@ -72,11 +72,8 @@ def savehostipalList():
         url = "https://www.haodf.com/yiyuan/all/list.htm"
         purlList = pUrl(url)  # 获取省份链接
 
-        init_shf = 0  # 省份总计数器
         init_chs = 0  # 城市总计数器
         init_yy = 0  # 医院总计数器
-        init_ys = 0  # 医生总计数器
-        init_pl = 0  # 评论总计数器
 
         init_shf = len(purlList[0])
         for temp_shf in range(init_shf):
@@ -361,17 +358,17 @@ def Threads_save(startnum, endnum):
         time.sleep(30)  # 错峰启动
 
 
-# savehostipalList()
+savehostipalList()
 
 """
 运行区
-"""
+
 
 # 信息表
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_save(starnum, int(endnum))
-
+"""
 
 '''
 # 医生表

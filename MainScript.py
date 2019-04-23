@@ -45,7 +45,7 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
     cityUrl = []
     for i in find_url:
         # !!!'?category=2'为只抓中医医院的列表
-        cityUrl.append('https://' + str(i.get("href"))[2:]+'list.htm?category=2')
+        cityUrl.append('https://' + str(i.get("href"))[2:]+'?category=2')
         cityList.append(i.getText())
     info = cityList, cityUrl  # 城市名 链接
     # print(info)
@@ -362,10 +362,10 @@ def a():
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
 
-
-        url='https://www.haodf.com/yiyuan/beijing/list.htm'
-        cityUrlLoad(url)
         '''
+        url='https://www.haodf.com/yiyuan/beijing/list.htm'
+        print(cityUrlLoad(url))
+
         url='https://www.haodf.com/yiyuan/beijing/chaoyang/list.htm?category=2'
         print(hUrl(url))
         '''
