@@ -389,7 +389,7 @@ def a():
     debug()
 
 
-a()  # 开启Debug模式
+#a()  # 开启Debug模式
 
 '''
     def start():
