@@ -44,7 +44,7 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
     cityList = []
     cityUrl = []
     for i in find_url:
-        cityUrl.append('https://' + str(i.get("href"))[2:])
+        cityUrl.append('https://' + str(i.get("href"))[2:]+'list.htm?category=2')
         cityList.append(i.getText())
     info = cityList, cityUrl  # 城市名 链接
     # print(info)
@@ -52,15 +52,18 @@ def cityUrlLoad(url):  # 通过省份链接查找城市链接
 
 
 def hUrl(url):  # 通过城市链接查找医院链接
+    # !!!'?category=2'为只抓中医医院的列表
     req = request.Request(url, headers=headers)
     html = urlopen(req, timeout=5)
     html_BSObj = BeautifulSoup(html, "lxml")  # 链接对象
+
     find_content = html_BSObj.find(attrs={"class": "m_ctt_green"})  # 定位目录
     find_url = BeautifulSoup(str(find_content), "lxml")
     find_url = find_url.findAll("a")
     hList = []
     hUrl = []
     for i in find_url:
+
         hUrl.append('https://www.haodf.com/' + str(i.get("href")[1:]))
         hList.append(i.getText())
     info = hList, hUrl  # 医院名 链接
@@ -349,23 +352,23 @@ def doctorinfo(url, driver):  # 查找评价
 
 def a():
     def debug():
+        '''
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/')
         GPInfo("浏览器启动成功")
 
-        '''
+
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
-
 
 
         url='https://www.haodf.com/yiyuan/beijing/list.htm'
         cityUrlLoad(url)
         '''
-        url='https://www.haodf.com/yiyuan/beijing/list.htm?category=2'
+        url='https://www.haodf.com/yiyuan/beijing/chaoyang/list.htm?category=2'
         print(hUrl(url))
-
         '''
+        
         url = 'https://www.haodf.com/tuijian/jibing_jiazhuangpangxianzengsheng_72.htm'
         print(doctorList(url, driver))
 
@@ -385,7 +388,7 @@ def a():
     debug()
 
 
-#a()  # 开启Debug模式
+a()  # 开启Debug模式
 
 '''
     def start():
