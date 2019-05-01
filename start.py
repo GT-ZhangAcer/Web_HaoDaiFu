@@ -30,13 +30,14 @@ idnum = 0  # 设备指纹
 # idnum=ID计数器 用于代理、UA计数
 
 if proxy_S == 1:
-    try:
-        # proxy = getIP()  # 获取代理
-        # proxy = getLongIpFile()
-        proxy = proxyc(proxynum=proxynum,key="APDSDFTYXDSQRLKWUVITYUQR")  # 实例化代理获取器
+    # try:
+    # proxy = getIP()  # 获取代理
+    # proxy = getLongIpFile()
+    proxy = proxyc(proxynum=proxynum, key="SLPKDQCDVFDDTYI")  # 实例化代理获取器
 
-    except:
-        GPError(000, "代理获取失败请重试")
+
+# except:
+# GPError(000, "代理获取失败请重试")
 
 
 def initDriver(proxyinfo):  # 传入代理地址
@@ -308,8 +309,8 @@ def Threads_doctorUrl(startnum, endnum):
     num = input("请输入线程数[1-25]:")
     global sumCPU
     lang = (int(endnum) - int(startnum)) // int(num)
-    tempstartnum = 1
-    tempendnum = 1 + lang
+    tempstartnum = startnum
+    tempendnum = startnum + lang
     for i in range(1, int(num) + 1):
         if i == int(num):
             cpu = threading.Thread(target=savedoctorList, args=(tempstartnum, endnum, sumCPU))
@@ -336,8 +337,8 @@ def Threads_save(startnum, endnum):
     global sumCPU
     # 起始位置
     lang = (int(endnum) - int(startnum)) // int(num)
-    tempstartnum = 1
-    tempendnum = 1 + lang
+    tempstartnum = startnum
+    tempendnum = startnum + lang
 
     # 分配线程任务
     for i in range(1, int(num) + 1):
@@ -358,7 +359,7 @@ def Threads_save(startnum, endnum):
         time.sleep(30)  # 错峰启动
 
 
-savehostipalList()
+# savehostipalList()
 
 """
 运行区
@@ -369,11 +370,9 @@ starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_save(starnum, int(endnum))
 """
-
+'''
 '''
 # 医生表
 starnum = input("输入开始位置_")
 endnum = input("输入结束位置_")
 Threads_doctorUrl(starnum, int(endnum) + 1)
-'''
-

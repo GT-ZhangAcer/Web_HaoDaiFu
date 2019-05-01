@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv372x64win" />
+      <excludeFolder url="file://$MODULE_DIR$/venv372x64win2" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.7 (Web_HaoDaiFu)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

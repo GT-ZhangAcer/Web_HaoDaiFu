@@ -353,26 +353,26 @@ def doctorinfo(url, driver):  # 查找评价
 
 def a():
     def debug():
-        '''
+
         GPAct("启动浏览器")
         driver = webdriver.Firefox(workPath() + 'exe/core/')
         GPInfo("浏览器启动成功")
 
-
+        '''
         url="https://www.haodf.com/yiyuan/all/list.htm"
         purlList=pUrl(url)
 
-        '''
+       
         url='https://www.haodf.com/yiyuan/beijing/list.htm'
         print(cityUrlLoad(url))
 
         url='https://www.haodf.com/yiyuan/beijing/chaoyang/list.htm?category=2'
         print(hUrl(url))
-        '''
         
+        '''
         url = 'https://www.haodf.com/tuijian/jibing_jiazhuangpangxianzengsheng_72.htm'
         print(doctorList(url, driver))
-
+        '''
         
         url = 'https://www.haodf.com/doctor/DE4r0BCkuHzdFg0Jr7vRDydDzVOlL.htm'
         info=doctorinfo(url, driver)
