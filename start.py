@@ -366,13 +366,13 @@ def Threads_save(startnum, endnum):
 
 
 # 信息表
-starnum = input("输入开始位置_")
-endnum = input("输入结束位置_")
+starnum = int(input("输入开始位置_"))
+endnum = int(input("输入结束位置_"))
 Threads_save(starnum, int(endnum))
 """
 '''
 '''
 # 医生表
-starnum = input("输入开始位置_")
-endnum = input("输入结束位置_")
+starnum = int(input("输入开始位置_"))
+endnum = int(input("输入结束位置_"))
 Threads_doctorUrl(starnum, int(endnum) + 1)
