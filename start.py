@@ -200,7 +200,7 @@ def saveinfo(startnum, endnum, idnum):  # idnum为指纹计数器 分配不同�
     with open("./data/" + timea + "-" + str(idnum) + ".csv", 'w', newline='', encoding='utf-8')as ff:
         writer = csv.DictWriter(ff, key2)
         writer.writeheader()
-        driver = initDriver(proxy.findProxy())
+        driver = initDriver(proxy.findapi())
         for i in range(startnum, endnum + 1):
             sumOnly = 0  # 单医生评论计数器
             if i % 20 == 19:
@@ -359,18 +359,17 @@ def Threads_save(startnum, endnum):
         time.sleep(30)  # 错峰启动
 
 
+# 运行区
 # savehostipalList()
-
-'''
-运行区
 
 # 信息表
 starnum = int(input("输入开始位置_")) - 1
 endnum = int(input("输入结束位置_")) - 1
 Threads_save(starnum, int(endnum))
-'''
 
+'''
 # 医生表
 starnum = int(input("输入开始位置_")) - 1
 endnum = int(input("输入结束位置_")) - 1
 Threads_doctorUrl(starnum, int(endnum))
+'''
