@@ -375,4 +375,4 @@ Threads_save(starnum, int(endnum))
 # 医生表
 starnum = int(input("输入开始位置_"))
 endnum = int(input("输入结束位置_"))
-Threads_doctorUrl(starnum, int(endnum) + 1)
+Threads_doctorUrl(starnum, int(endnum))
