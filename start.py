@@ -361,15 +361,15 @@ def Threads_save(startnum, endnum):
 
 # 运行区
 # savehostipalList()
-'''
+
 # 信息表
-starnum = int(input("输入开始位置_")) - 1
+starnum = int(input("输入开始位置_"))
 endnum = int(input("输入结束位置_")) - 1
 Threads_save(starnum, int(endnum))
 
 '''
 # 医生表
-starnum = int(input("输入开始位置_")) - 1
+starnum = int(input("输入开始位置_"))
 endnum = int(input("输入结束位置_")) - 1
 Threads_doctorUrl(starnum, int(endnum))
-
+'''
